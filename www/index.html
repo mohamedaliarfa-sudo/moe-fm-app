@@ -54,6 +54,11 @@
       gap: 8px;
       margin-bottom: 10px;
     }
+    .box-header.collapsible {
+      margin-bottom: 0;
+      cursor: pointer;
+      user-select: none;
+    }
     h1 { margin: 0 0 4px; font-size: 1.5rem; letter-spacing: 0.02em; }
     h2 { margin: 0; font-size: 1.05rem; letter-spacing: 0.01em; }
     .box-tag {
@@ -65,7 +70,7 @@
       border-radius: 999px;
       white-space: nowrap;
     }
-    .sub { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
+    .sub { color: var(--muted); font-size: 0.86rem; margin: 0 0 10px; }
     .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .badge {
       background: var(--accent-soft);
@@ -110,22 +115,36 @@
     }
     .station-title { font-size: 1.12rem; font-weight: 700; margin: 0 0 4px; }
     .station-meta { color: var(--muted); font-size: 0.84rem; margin: 0; }
-    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px; }
     select, input[type="text"] {
       width: 100%;
       background: var(--card-2);
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 11px 12px;
-      font-size: 0.94rem;
-      margin-bottom: 10px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      margin-bottom: 9px;
     }
 
-    /* Seamless clickable rows with hairline dividers */
+    /* Collapsible drawer body for International */
+    .intl-body {
+      display: none;
+      margin-top: 10px;
+    }
+    .intl-body.open {
+      display: block;
+    }
     .seamless-list {
       display: flex;
       flex-direction: column;
+      max-height: 230px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    #localList.seamless-list {
+      max-height: none;
+      overflow-y: visible;
     }
     .seamless-row {
       width: 100%;
@@ -133,14 +152,14 @@
       border: none;
       border-bottom: 1px solid var(--hairline);
       border-radius: 0;
-      padding: 11px 8px;
+      padding: 10px 6px;
       text-align: left;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
       color: var(--text);
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       font-weight: 500;
       cursor: pointer;
     }
@@ -153,7 +172,7 @@
       background: rgba(224, 122, 43, 0.08);
     }
     .row-sub {
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       color: var(--muted);
       flex-shrink: 0;
     }
@@ -161,16 +180,16 @@
     .chip-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 10px;
+      gap: 5px;
+      margin-bottom: 8px;
     }
     .chip {
       background: var(--card-2);
       color: var(--muted);
       border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 5px 10px;
-      font-size: 0.76rem;
+      padding: 4px 9px;
+      font-size: 0.73rem;
       font-weight: 600;
       cursor: pointer;
     }
@@ -180,7 +199,7 @@
       color: #ffbe88;
     }
 
-    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
     button, a.btn-link {
       display: inline-flex;
       align-items: center;
@@ -190,8 +209,8 @@
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 0.88rem;
+      padding: 9px 13px;
+      font-size: 0.86rem;
       font-weight: 600;
       cursor: pointer;
     }
@@ -213,8 +232,8 @@
     .slider-box { margin-bottom: 12px; }
     .slider-top { display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 4px; }
     input[type="range"] { width: 100%; accent-color: var(--accent); }
-    .status { font-size: 0.84rem; color: var(--muted); margin-top: 6px; }
-    .custom-row { display: grid; gap: 8px; }
+    .status { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+    .custom-row { display: grid; gap: 6px; }
     .yt-frame-wrap {
       position: relative;
       width: 100%;
@@ -234,14 +253,15 @@
       height: 100%;
       border: 0;
     }
-    .fav-banner {
-      font-size: 0.82rem;
-      color: #ffd98a;
-      background: rgba(245, 185, 66, 0.1);
-      border: 1px solid rgba(245, 185, 66, 0.28);
-      border-radius: 10px;
-      padding: 8px 10px;
-      margin-top: 8px;
+    .fav-box {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--hairline);
+    }
+    .fav-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 0;
     }
     .welcome-pill {
       position: fixed;
@@ -289,7 +309,7 @@
   <div class="wrap">
     <div class="card">
       <h1>Moe FM</h1>
-      <p class="sub" style="margin-bottom: 8px;">Vinyl &amp; Hi-Fi Café — Radio &amp; Audio Lounge</p>
+      <p class="sub" style="margin-bottom: 8px;">Vinyl & Hi-Fi Café — Radio & Audio Lounge</p>
       <div class="badge-row">
         <span class="badge" id="warmthBadge">Warmth +2 dB</span>
         <span class="badge" id="voiceBadge">Voice Clarity Off</span>
@@ -331,89 +351,91 @@
       </div>
 
       <div class="status" id="statusText">Ready — tap any station name or press Play.</div>
-      <div class="controls" style="margin-top: 10px; margin-bottom: 0;">
-        <a class="btn-link" id="webStreamLink" href="https://www.cbc.ca/listen/live-radio/1-100-cbc-radio-one-ottawa" target="_blank" rel="noopener noreferrer">Open Station Player</a>
-      </div>
     </div>
 
-    <!-- Local Radio Box (Seamless Clickable Rows) -->
+    <!-- Local Radio Box -->
     <div class="card">
       <div class="box-header">
         <h2>Local Radio</h2>
-        <span class="box-tag">Ottawa–Gatineau</span>
+        <span class="box-tag">Direct Stream</span>
       </div>
       <div class="seamless-list" id="localList"></div>
     </div>
 
-    <!-- International Box (Vibe / Region / Country Filter + Random + Seamless Rows) -->
+    <!-- Collapsible International Box -->
     <div class="card">
-      <div class="box-header">
+      <div class="box-header collapsible" id="intlHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>International</h2>
-        <span class="box-tag">By Region &amp; Vibe</span>
-      </div>
-      <p class="sub">Filter by vibe or country, or tap Random Station to discover.</p>
-
-      <div class="chip-row" id="vibeChips">
-        <button type="button" class="chip active" data-vibe="All">All Vibes</button>
-        <button type="button" class="chip" data-vibe="News">News</button>
-        <button type="button" class="chip" data-vibe="Talk">Talk</button>
-        <button type="button" class="chip" data-vibe="Music">Music</button>
-        <button type="button" class="chip" data-vibe="Public">Public</button>
+        <span class="box-tag" id="intlToggleLabel">Expand ▾</span>
       </div>
 
-      <div class="chip-row" id="regionChips">
-        <button type="button" class="chip active" data-region="All">All Regions</button>
-        <button type="button" class="chip" data-region="North America">North America</button>
-        <button type="button" class="chip" data-region="Latin America">Latin America</button>
-        <button type="button" class="chip" data-region="Europe">Europe</button>
-        <button type="button" class="chip" data-region="North Africa & Middle East">MENA / Tunisia</button>
-        <button type="button" class="chip" data-region="Russia">Russia</button>
+      <div class="intl-body" id="intlBody">
+        <div class="chip-row" id="vibeChips">
+          <button type="button" class="chip active" data-vibe="All">All</button>
+          <button type="button" class="chip" data-vibe="News">News</button>
+          <button type="button" class="chip" data-vibe="Talk">Talk</button>
+          <button type="button" class="chip" data-vibe="Music">Music</button>
+          <button type="button" class="chip" data-vibe="Public">Public</button>
+        </div>
+
+        <div class="chip-row" id="regionChips">
+          <button type="button" class="chip active" data-region="All">All Regions</button>
+          <button type="button" class="chip" data-region="North America">N. America</button>
+          <button type="button" class="chip" data-region="Europe">Europe</button>
+          <button type="button" class="chip" data-region="North Africa & Middle East">MENA</button>
+          <button type="button" class="chip" data-region="Russia">Russia</button>
+        </div>
+
+        <input id="worldFilterInput" type="text" placeholder="Filter country or vibe..." />
+
+        <div class="controls" style="margin-bottom: 6px;">
+          <button class="primary" id="randomStationBtn" type="button">Random Station</button>
+          <button id="resetFilterBtn" type="button">Reset</button>
+        </div>
+
+        <div class="seamless-list" id="intlList"></div>
       </div>
-
-      <input id="worldFilterInput" type="text" placeholder="Search country, region, or vibe (e.g., Chile, Russia, Music)..." />
-
-      <div class="controls" style="margin-bottom: 8px;">
-        <button class="primary" id="randomStationBtn" type="button">Random Station</button>
-        <button id="resetFilterBtn" type="button">Reset Filters</button>
-      </div>
-
-      <div class="seamless-list" id="intlList"></div>
     </div>
 
-    <!-- Merged Misc & YouTube Box -->
+    <!-- YouTube Box -->
     <div class="card">
       <div class="box-header">
-        <h2>Misc &amp; YouTube</h2>
-        <span class="box-tag">Search &amp; Mix</span>
+        <h2>YouTube</h2>
+        <span class="box-tag">Video & Mix</span>
       </div>
-      <p class="sub">Search a song name or paste a YouTube link to play its artist mix &amp; star your favorite.</p>
 
       <div class="custom-row">
-        <input id="miscTitle" type="text" placeholder="Song or artist name (for Search YouTube or label)" />
-        <input id="miscUrl" type="text" placeholder="Paste YouTube URL (watch, youtu.be, shorts, or playlist)" />
+        <input id="ytTitle" type="text" placeholder="Song or artist name (optional label or search)" />
+        <input id="ytUrl" type="text" placeholder="Paste YouTube URL (watch, youtu.be, shorts, or playlist)" />
         <div class="controls" style="margin-bottom: 0;">
-          <button class="primary" id="miscPlayBtn" type="button">Play Link</button>
-          <button id="miscSearchBtn" type="button">Search YouTube</button>
-          <button class="active" id="miscMixBtn" type="button">Artist Radio: On</button>
-          <button class="star-btn" id="miscStarBtn" type="button">★ Favorite</button>
-          <button id="miscClearBtn" type="button">Clear</button>
+          <button class="primary" id="ytPlayBtn" type="button">Play Link</button>
+          <button id="ytSearchBtn" type="button">Search YouTube</button>
+          <button class="active" id="ytMixBtn" type="button">Artist Mix: On</button>
+          <button class="star-btn" id="ytStarBtn" type="button">★ Favorite</button>
+          <button id="ytClearBtn" type="button">Clear</button>
         </div>
       </div>
 
-      <div class="fav-banner" id="miscFavDisplay">Saved Favorite: None yet — click ★ Favorite to save one.</div>
-      <div class="status" id="miscStatus">Type a song name to Search YouTube, or paste a YouTube URL and tap Play Link.</div>
+      <div class="status" id="ytStatus">Paste a YouTube link to play in-app, or enter a title to search.</div>
 
       <div class="yt-frame-wrap" id="ytFrameWrap">
         <iframe
           id="ytFrame"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
-          title="Misc YouTube Player">
+          title="YouTube Player">
         </iframe>
       </div>
 
-      <div class="controls" style="margin-top: 10px; margin-bottom: 0;">
-        <a class="btn-link" id="openYtExternalBtn" href="https://m.youtube.com" target="_blank" rel="noopener noreferrer">Open in YouTube App</a>
+      <div class="fav-box">
+        <label for="favSelect">Favorites</label>
+        <select id="favSelect">
+          <option value="">No saved favorites yet</option>
+        </select>
+        <div class="fav-actions">
+          <button type="button" id="favPlayBtn">Play Favorite</button>
+          <button type="button" id="favRemoveBtn">Remove</button>
+        </div>
       </div>
     </div>
 
@@ -423,23 +445,9 @@
         <h2>Spotify</h2>
         <span class="box-tag">Quick Launch</span>
       </div>
-      <p class="sub">Jump straight to your playlists when switching from live radio.</p>
       <div class="controls" style="margin-bottom: 0;">
         <a class="btn-link" href="spotify://">Launch Spotify App</a>
         <a class="btn-link" href="https://open.spotify.com" target="_blank" rel="noopener noreferrer">Open Spotify Web</a>
-      </div>
-    </div>
-
-    <!-- Custom Stream Box -->
-    <div class="card">
-      <div class="box-header">
-        <h2>Custom Stream</h2>
-        <span class="box-tag">Add URL</span>
-      </div>
-      <div class="custom-row">
-        <input id="customName" type="text" placeholder="Station name" />
-        <input id="customUrl" type="text" placeholder="Direct stream URL (.m3u8, .mp3, .aac)" />
-        <button id="addStreamBtn" type="button">Add &amp; Play Stream</button>
       </div>
     </div>
   </div>
@@ -456,32 +464,26 @@
 
   <script>
     (function () {
+      // Curated direct-stream radio catalog
       var catalog = [
-        { id: 0, group: "local", title: "CBC Radio One (Ottawa)", region: "North America", country: "Canada", vibes: ["Public", "Talk"], url: "https://cbcradiolive.akamaized.net/hls/live/2041037/ES_R1ETT/master.m3u8", webUrl: "https://www.cbc.ca/listen/live-radio/1-100-cbc-radio-one-ottawa" },
-        { id: 1, group: "local", title: "ICI Radio-Canada Première (Ottawa-Gatineau)", region: "North America", country: "Canada", vibes: ["Public", "Talk"], url: "https://rcavliveaudio.akamaized.net/hls/live/2006652/P-2OOTT0_OTT/master.m3u8", webUrl: "https://ici.radio-canada.ca/ohdio/premiere" },
-        { id: 2, group: "local", title: "1200 AM Ottawa", region: "North America", country: "Canada", vibes: ["Talk", "News"], url: "https://playerservices.streamtheworld.com/api/livestream-redirect/CFGOAMAAC.aac", webUrl: "https://www.tsn.ca/radio/ottawa-1200" },
+        { id: 0, group: "local", title: "CBC Radio One (Ottawa)", region: "North America", country: "Canada", vibes: ["Public", "Talk"], url: "https://cbcradiolive.akamaized.net/hls/live/2041037/ES_R1ETT/master.m3u8" },
+        { id: 1, group: "local", title: "ICI Radio-Canada Première (Ottawa-Gatineau)", region: "North America", country: "Canada", vibes: ["Public", "Talk"], url: "https://rcavliveaudio.akamaized.net/hls/live/2006652/P-2OOTT0_OTT/master.m3u8" },
+        { id: 2, group: "local", title: "1200 AM Ottawa", region: "North America", country: "Canada", vibes: ["Talk", "News"], url: "https://playerservices.streamtheworld.com/api/livestream-redirect/CFGOAMAAC.aac" },
 
-        { id: 3, group: "intl", title: "NPR", region: "North America", country: "USA", vibes: ["Public", "News"], url: "https://npr-ice.streamguys1.com/live.mp3", webUrl: "https://www.npr.org" },
+        { id: 3, group: "intl", title: "NPR", region: "North America", country: "USA", vibes: ["Public", "News"], url: "https://npr-ice.streamguys1.com/live.mp3" },
 
-        { id: 4, group: "intl", title: "Radio Nacional de Colombia", region: "Latin America", country: "Colombia", vibes: ["Public", "Music"], url: "https://www.radionacional.co/en-vivo/en-vivo-radio-nacional-de-colombia", webUrl: "https://www.radionacional.co/en-vivo/en-vivo-radio-nacional-de-colombia" },
-        { id: 5, group: "intl", title: "Radio Cooperativa (Chile)", region: "Latin America", country: "Chile", vibes: ["News", "Talk"], url: "https://cooperativa.cl/radioenvivo/", webUrl: "https://cooperativa.cl/radioenvivo/" },
-        { id: 6, group: "intl", title: "Radio Disney Argentina", region: "Latin America", country: "Argentina", vibes: ["Music"], url: "https://ar.radiodisney.com/", webUrl: "https://ar.radiodisney.com/" },
-        { id: 7, group: "intl", title: "Rádio Cultura Brasil", region: "Latin America", country: "Brazil", vibes: ["Public", "Music"], url: "https://www.appradio.app:8162", webUrl: "https://tunein.com/radio/Radio-Cultura-Brasil-779-s336438/" },
+        { id: 4, group: "intl", title: "BBC Radio 2", region: "Europe", country: "UK", vibes: ["Music", "Talk"], url: "https://as-hls-ww-live.akamaized.net/pool_74208725/live/ww/bbc_radio_two/bbc_radio_two.isml/bbc_radio_two-audio=96000.norewind.m3u8" },
+        { id: 5, group: "intl", title: "BBC Radio 4", region: "Europe", country: "UK", vibes: ["Talk", "Public"], url: "https://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=96000.norewind.m3u8" },
+        { id: 6, group: "intl", title: "BBC World Service", region: "Europe", country: "UK", vibes: ["News", "Public"], url: "https://as-hls-ww-live.akamaized.net/pool_87948813/live/ww/bbc_world_service/bbc_world_service.isml/bbc_world_service-audio=96000.norewind.m3u8" },
+        { id: 7, group: "intl", title: "RFI (Radio France Internationale)", region: "Europe", country: "France", vibes: ["News", "Music"], url: "https://rfimonde64k.ice.infomaniak.ch/rfimonde-64.mp3" },
 
-        { id: 8, group: "intl", title: "BBC Radio 2", region: "Europe", country: "UK", vibes: ["Music", "Talk"], url: "https://as-hls-ww-live.akamaized.net/pool_74208725/live/ww/bbc_radio_two/bbc_radio_two.isml/bbc_radio_two-audio=96000.norewind.m3u8", webUrl: "https://www.bbc.co.uk/sounds/play/live:bbc_radio_two" },
-        { id: 9, group: "intl", title: "BBC Radio 4", region: "Europe", country: "UK", vibes: ["Talk", "Public"], url: "https://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=96000.norewind.m3u8", webUrl: "https://www.bbc.co.uk/sounds/play/live:bbc_radio_fourfm" },
-        { id: 10, group: "intl", title: "BBC World Service", region: "Europe", country: "UK", vibes: ["News", "Public"], url: "https://as-hls-ww-live.akamaized.net/pool_87948813/live/ww/bbc_world_service/bbc_world_service.isml/bbc_world_service-audio=96000.norewind.m3u8", webUrl: "https://www.bbc.co.uk/sounds/play/live:bbc_world_service" },
-        { id: 11, group: "intl", title: "RFI (Radio France Internationale)", region: "Europe", country: "France", vibes: ["News", "Music"], url: "https://rfimonde64k.ice.infomaniak.ch/rfimonde-64.mp3", webUrl: "https://www.rfi.fr/en/live" },
+        { id: 8, group: "intl", title: "Al Jazeera English", region: "North Africa & Middle East", country: "Qatar / MENA", vibes: ["News"], url: "https://live-hls-audio-web-aje.getaj.net/AJE/01.m3u8" },
+        { id: 9, group: "intl", title: "Jawhara FM (Tunisia)", region: "North Africa & Middle East", country: "Tunisia", vibes: ["Music", "Talk"], url: "https://streaming2.toutech.net:8000/jawharafm" },
+        { id: 10, group: "intl", title: "Mosaïque FM (Tunisia)", region: "North Africa & Middle East", country: "Tunisia", vibes: ["Music", "Talk"], url: "https://radio.mosaiquefm.net/mosalive" },
+        { id: 11, group: "intl", title: "Radio Tunis Nationale (Tunisia)", region: "North Africa & Middle East", country: "Tunisia", vibes: ["Public", "Talk"], url: "https://rtstream.tanitweb.com/nationale" },
 
-        { id: 12, group: "intl", title: "Al Jazeera English", region: "North Africa & Middle East", country: "Qatar / MENA", vibes: ["News"], url: "https://live-hls-audio-web-aje.getaj.net/AJE/01.m3u8", webUrl: "https://www.aljazeera.com/audio/live/" },
-        { id: 13, group: "intl", title: "Jawhara FM (Tunisia)", region: "North Africa & Middle East", country: "Tunisia", vibes: ["Music", "Talk"], url: "https://streaming2.toutech.net:8000/jawharafm", webUrl: "https://www.jawharafm.net/fr/live/56" },
-        { id: 14, group: "intl", title: "Mosaïque FM (Tunisia)", region: "North Africa & Middle East", country: "Tunisia", vibes: ["Music", "Talk"], url: "https://radio.mosaiquefm.net/mosalive", webUrl: "https://www.mosaiquefm.net/fr/player/18/live" },
-        { id: 15, group: "intl", title: "Radio Tunis Nationale (Tunisia)", region: "North Africa & Middle East", country: "Tunisia", vibes: ["Public", "Talk"], url: "https://rtstream.tanitweb.com/nationale", webUrl: "https://www.radionationale.tn/" },
-
-        { id: 16, group: "intl", title: "Kommersant FM", region: "Russia", country: "Russia", vibes: ["News", "Talk"], url: "http://kommersant77.hostingradio.ru:8016/kommersant128.mp3", webUrl: "https://www.kommersant.ru/fm" },
-        { id: 17, group: "intl", title: "Vesti FM (Вести FM)", region: "Russia", country: "Russia", vibes: ["News", "Talk"], url: "https://icecast.vgtrk.cdnvideo.ru/vestifm_mp3_128kbps", webUrl: "https://radiovesti.ru/" },
-        { id: 18, group: "intl", title: "Silver Rain (Серебряный Дождь)", region: "Russia", country: "Russia", vibes: ["Music", "Talk"], url: "http://silverrain.hostingradio.ru/silver128.mp3", webUrl: "https://www.silver.ru/radio/" },
-        { id: 19, group: "intl", title: "Radio Mayak (Радио Маяк)", region: "Russia", country: "Russia", vibes: ["Public", "Talk"], url: "https://icecast-vgtrk.cdnvideo.ru/mayakfm_aac_64kbps", webUrl: "https://radiomayak.ru/" }
+        { id: 12, group: "intl", title: "Vesti FM (Вести FM)", region: "Russia", country: "Russia", vibes: ["News", "Talk"], url: "https://icecast.vgtrk.cdnvideo.ru/vestifm_mp3_128kbps" },
+        { id: 13, group: "intl", title: "Radio Mayak (Радио Маяк)", region: "Russia", country: "Russia", vibes: ["Public", "Talk"], url: "https://icecast-vgtrk.cdnvideo.ru/mayakfm_aac_64kbps" }
       ];
 
       var selectedVibe = "All";
@@ -494,6 +496,9 @@
       var channelSelect = document.getElementById("channelSelect");
       var localListEl = document.getElementById("localList");
       var intlListEl = document.getElementById("intlList");
+      var intlHeader = document.getElementById("intlHeader");
+      var intlBody = document.getElementById("intlBody");
+      var intlToggleLabel = document.getElementById("intlToggleLabel");
       var stationTitle = document.getElementById("stationTitle");
       var stationMeta = document.getElementById("stationMeta");
       var playBtn = document.getElementById("playBtn");
@@ -507,12 +512,36 @@
       var voiceBadge = document.getElementById("voiceBadge");
       var statusText = document.getElementById("statusText");
       var vinylDisc = document.getElementById("vinylDisc");
-      var webStreamLink = document.getElementById("webStreamLink");
       var filterInput = document.getElementById("worldFilterInput");
       var randomBtn = document.getElementById("randomStationBtn");
       var resetFilterBtn = document.getElementById("resetFilterBtn");
 
+      var ytFrameWrap = document.getElementById("ytFrameWrap");
+      var ytFrame = document.getElementById("ytFrame");
+
       audio.volume = 0.85;
+
+      function setIntlOpen(isOpen) {
+        intlBody.classList.toggle("open", isOpen);
+        intlHeader.setAttribute("aria-expanded", String(isOpen));
+        intlToggleLabel.textContent = isOpen ? "Collapse ▴" : "Expand ▾";
+      }
+
+      intlHeader.addEventListener("click", function () {
+        setIntlOpen(!intlBody.classList.contains("open"));
+      });
+
+      intlHeader.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setIntlOpen(!intlBody.classList.contains("open"));
+        }
+      });
+
+      function stopYouTubePlayback() {
+        ytFrame.src = "";
+        ytFrameWrap.classList.remove("visible");
+      }
 
       function getStationById(id) {
         for (var i = 0; i < catalog.length; i++) {
@@ -570,7 +599,7 @@
         if (!list.length) {
           var empty = document.createElement("div");
           empty.className = "status";
-          empty.textContent = "No stations match that filter — tap Reset Filters.";
+          empty.textContent = "No stations match — tap Reset.";
           intlListEl.appendChild(empty);
           return;
         }
@@ -597,7 +626,6 @@
         channelSelect.value = String(st.id);
         stationTitle.textContent = st.title;
         stationMeta.textContent = st.region + " • " + st.country + " • " + st.vibes.join(" / ");
-        webStreamLink.href = st.webUrl || st.url;
         refreshStationLists();
         if (autoplay) startPlayback();
       }
@@ -615,6 +643,9 @@
       }
 
       function startPlayback() {
+        // Ensure YouTube stops so radio and YouTube never overlap
+        stopYouTubePlayback();
+
         var st = getStationById(currentId);
         if (hls) {
           hls.destroy();
@@ -634,14 +665,14 @@
           hls.on(window.Hls.Events.ERROR, function (_, data) {
             if (data && data.fatal) {
               vinylDisc.classList.remove("spinning");
-              statusText.textContent = "Direct stream unavailable here — tap Open Station Player.";
+              statusText.textContent = "Stream unavailable right now.";
             }
           });
         } else {
           audio.src = st.url;
           audio.play().catch(function () {
             vinylDisc.classList.remove("spinning");
-            statusText.textContent = "Direct stream unavailable here — tap Open Station Player.";
+            statusText.textContent = "Stream unavailable right now.";
           });
         }
       }
@@ -657,7 +688,7 @@
 
       audio.addEventListener("error", function () {
         vinylDisc.classList.remove("spinning");
-        statusText.textContent = "Direct stream unavailable here — tap Open Station Player.";
+        statusText.textContent = "Stream unavailable right now.";
       });
 
       document.addEventListener("click", function (e) {
@@ -690,6 +721,7 @@
       filterInput.addEventListener("input", renderIntlRows);
 
       randomBtn.addEventListener("click", function () {
+        setIntlOpen(true);
         var pool = getFilteredIntlStations();
         if (!pool.length) {
           pool = catalog.filter(function (s) { return s.group === "intl"; });
@@ -740,44 +772,33 @@
         warmthBadge.textContent = "Warmth " + formatted;
       });
 
-      document.getElementById("addStreamBtn").addEventListener("click", function () {
-        var nameInput = document.getElementById("customName");
-        var urlInput = document.getElementById("customUrl");
-        var url = urlInput.value.trim();
-        if (!url) return;
-        var newId = catalog.length;
-        var title = nameInput.value.trim() || ("Custom Stream " + (newId + 1));
-        catalog.push({
-          id: newId,
-          group: "intl",
-          title: title,
-          region: "Custom",
-          country: "Custom URL",
-          vibes: ["Music", "Talk"],
-          url: url,
-          webUrl: url
-        });
-        rebuildSelect();
-        nameInput.value = "";
-        urlInput.value = "";
-        selectStation(newId, true);
-      });
-
-      // Misc & YouTube Search, Mix & Favorite Star
-      var FAV_KEY = "moefm_misc_favorite_v1";
+      // YouTube Player, External Search & Favorites Dropdown
+      var FAV_LIST_KEY = "moefm_yt_favorites_v3";
       var artistMix = true;
-      var miscTitle = document.getElementById("miscTitle");
-      var miscUrl = document.getElementById("miscUrl");
-      var miscPlayBtn = document.getElementById("miscPlayBtn");
-      var miscSearchBtn = document.getElementById("miscSearchBtn");
-      var miscMixBtn = document.getElementById("miscMixBtn");
-      var miscStarBtn = document.getElementById("miscStarBtn");
-      var miscClearBtn = document.getElementById("miscClearBtn");
-      var miscFavDisplay = document.getElementById("miscFavDisplay");
-      var miscStatus = document.getElementById("miscStatus");
-      var ytFrameWrap = document.getElementById("ytFrameWrap");
-      var ytFrame = document.getElementById("ytFrame");
-      var openYtExternalBtn = document.getElementById("openYtExternalBtn");
+      var ytTitle = document.getElementById("ytTitle");
+      var ytUrl = document.getElementById("ytUrl");
+      var ytPlayBtn = document.getElementById("ytPlayBtn");
+      var ytSearchBtn = document.getElementById("ytSearchBtn");
+      var ytMixBtn = document.getElementById("ytMixBtn");
+      var ytStarBtn = document.getElementById("ytStarBtn");
+      var ytClearBtn = document.getElementById("ytClearBtn");
+      var ytStatus = document.getElementById("ytStatus");
+      var favSelect = document.getElementById("favSelect");
+      var favPlayBtn = document.getElementById("favPlayBtn");
+      var favRemoveBtn = document.getElementById("favRemoveBtn");
+
+      function loadFavs() {
+        try {
+          var arr = JSON.parse(localStorage.getItem(FAV_LIST_KEY) || "[]");
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveFavs(arr) {
+        try { localStorage.setItem(FAV_LIST_KEY, JSON.stringify(arr)); } catch (e) {}
+      }
 
       function parseYouTube(raw) {
         if (!raw) return { vid: null, list: null };
@@ -799,116 +820,137 @@
         return { vid: null, list: list };
       }
 
-      function syncFavUI() {
-        var fav = null;
-        try { fav = JSON.parse(localStorage.getItem(FAV_KEY) || "null"); } catch (e) {}
-        var cur = miscUrl.value.trim();
-        var isFav = Boolean(fav && cur && fav.url === cur);
-        miscStarBtn.classList.toggle("starred", isFav);
-        if (fav && fav.url) {
-          miscFavDisplay.innerHTML = "Saved Favorite: <strong>" + (fav.title || fav.url) + "</strong> — <a href=\"#\" id=\"loadFavLink\" style=\"color:#ffd98a;text-decoration:underline;\">Load</a>";
-          var link = document.getElementById("loadFavLink");
-          if (link) {
-            link.addEventListener("click", function (ev) {
-              ev.preventDefault();
-              miscTitle.value = fav.title || "";
-              miscUrl.value = fav.url;
-              syncFavUI();
-              playMisc();
-            });
-          }
-        } else {
-          miscFavDisplay.textContent = "Saved Favorite: None yet — click ★ Favorite to save one.";
+      function syncFavDropdown(selectedUrl) {
+        var favs = loadFavs();
+        var curUrl = selectedUrl || ytUrl.value.trim();
+        var isFav = favs.some(function (item) { return item.url === curUrl; });
+        ytStarBtn.classList.toggle("starred", isFav);
+
+        favSelect.innerHTML = "";
+        if (!favs.length) {
+          var emptyOpt = document.createElement("option");
+          emptyOpt.value = "";
+          emptyOpt.textContent = "No saved favorites yet";
+          favSelect.appendChild(emptyOpt);
+          return;
+        }
+
+        favs.forEach(function (item) {
+          var opt = document.createElement("option");
+          opt.value = item.url;
+          opt.textContent = item.title || item.url;
+          favSelect.appendChild(opt);
+        });
+
+        if (isFav && curUrl) {
+          favSelect.value = curUrl;
         }
       }
 
-      function searchYouTube() {
-        var query = miscTitle.value.trim();
+      function searchYouTubeExternal() {
+        var query = ytTitle.value.trim();
         if (!query) {
-          miscStatus.textContent = "Type a song or artist name in the first box, then tap Search YouTube.";
+          ytStatus.textContent = "Enter a song or artist name first, then tap Search YouTube.";
           return;
         }
-        var searchUrl = "https://m.youtube.com/results?search_query=" + encodeURIComponent(query);
-        openYtExternalBtn.href = searchUrl;
-        ytFrame.src = searchUrl;
-        ytFrameWrap.classList.add("visible");
-        miscStatus.textContent = "Searching YouTube for \"" + query + "\" — open a video and paste its link above to play.";
+        var url = "https://m.youtube.com/results?search_query=" + encodeURIComponent(query);
+        window.open(url, "_blank", "noopener,noreferrer");
+        ytStatus.textContent = "Opened YouTube search for \"" + query + "\".";
       }
 
-      function playMisc() {
-        var url = miscUrl.value.trim();
-        var label = miscTitle.value.trim() || "YouTube Track";
+      function playYouTube() {
+        var url = ytUrl.value.trim();
+        var label = ytTitle.value.trim() || "YouTube Track";
         if (!url) {
-          if (miscTitle.value.trim()) {
-            searchYouTube();
-          } else {
-            miscStatus.textContent = "Type a song name to Search YouTube, or paste a YouTube URL.";
-          }
+          ytStatus.textContent = "Paste a YouTube link or pick a saved favorite from the dropdown.";
           return;
         }
-        stopPlayback();
         var yt = parseYouTube(url);
-        if (yt.vid || yt.list) {
-          var activeList = yt.list || (artistMix && yt.vid ? "RD" + yt.vid : null);
-          var embedUrl = yt.vid
-            ? "https://www.youtube-nocookie.com/embed/" + yt.vid + "?autoplay=1&playsinline=1&rel=0" + (activeList ? "&list=" + activeList : "")
-            : "https://www.youtube-nocookie.com/embed/videoseries?autoplay=1&playsinline=1&list=" + activeList;
-          ytFrame.src = embedUrl;
-          ytFrameWrap.classList.add("visible");
-          openYtExternalBtn.href = yt.vid
-            ? "https://m.youtube.com/watch?v=" + yt.vid + (activeList ? "&list=" + activeList : "")
-            : "https://m.youtube.com/playlist?list=" + activeList;
-          miscStatus.textContent = activeList ? "Playing Artist Mix: " + label : "Playing: " + label;
-        } else if (/^https?:\/\//i.test(url)) {
-          ytFrame.src = url;
-          ytFrameWrap.classList.add("visible");
-          openYtExternalBtn.href = url;
-          miscStatus.textContent = "Loaded: " + label;
-        } else {
-          miscStatus.textContent = "Please paste a valid YouTube link.";
-        }
-        syncFavUI();
-      }
-
-      miscPlayBtn.addEventListener("click", playMisc);
-      miscSearchBtn.addEventListener("click", searchYouTube);
-      miscMixBtn.addEventListener("click", function () {
-        artistMix = !artistMix;
-        miscMixBtn.classList.toggle("active", artistMix);
-        miscMixBtn.textContent = artistMix ? "Artist Radio: On" : "Artist Radio: Off";
-        if (miscUrl.value.trim()) playMisc();
-      });
-
-      miscStarBtn.addEventListener("click", function () {
-        var url = miscUrl.value.trim();
-        var title = miscTitle.value.trim();
-        if (!url) {
-          miscStatus.textContent = "Paste a link first before starring.";
+        if (!yt.vid && !yt.list) {
+          ytStatus.textContent = "Paste a valid YouTube video or playlist link.";
           return;
         }
-        var fav = null;
-        try { fav = JSON.parse(localStorage.getItem(FAV_KEY) || "null"); } catch (e) {}
-        if (fav && fav.url === url) {
-          localStorage.removeItem(FAV_KEY);
-          miscStatus.textContent = "Removed from Favorites.";
-        } else {
-          localStorage.setItem(FAV_KEY, JSON.stringify({ title: title, url: url }));
-          miscStatus.textContent = "Starred as favorite.";
+
+        // Stop radio so YouTube and radio never play at the same time
+        stopPlayback();
+
+        var activeList = yt.list || (artistMix && yt.vid ? "RD" + yt.vid : null);
+        var embedUrl = yt.vid
+          ? "https://www.youtube-nocookie.com/embed/" + yt.vid + "?autoplay=1&playsinline=1&rel=0" + (activeList ? "&list=" + activeList : "")
+          : "https://www.youtube-nocookie.com/embed/videoseries?autoplay=1&playsinline=1&list=" + activeList;
+        ytFrame.src = embedUrl;
+        ytFrameWrap.classList.add("visible");
+        ytStatus.textContent = activeList ? "Playing Artist Mix: " + label : "Playing: " + label;
+        syncFavDropdown(url);
+      }
+
+      ytPlayBtn.addEventListener("click", playYouTube);
+      ytSearchBtn.addEventListener("click", searchYouTubeExternal);
+
+      ytMixBtn.addEventListener("click", function () {
+        artistMix = !artistMix;
+        ytMixBtn.classList.toggle("active", artistMix);
+        ytMixBtn.textContent = artistMix ? "Artist Mix: On" : "Artist Mix: Off";
+        if (ytUrl.value.trim()) playYouTube();
+      });
+
+      ytStarBtn.addEventListener("click", function () {
+        var url = ytUrl.value.trim();
+        var title = ytTitle.value.trim() || url;
+        if (!url) {
+          ytStatus.textContent = "Paste a YouTube link first before starring.";
+          return;
         }
-        syncFavUI();
+        var favs = loadFavs();
+        var exists = favs.some(function (item) { return item.url === url; });
+        if (exists) {
+          favs = favs.filter(function (item) { return item.url !== url; });
+          saveFavs(favs);
+          ytStatus.textContent = "Removed from Favorites.";
+          syncFavDropdown("");
+        } else {
+          favs.unshift({ title: title, url: url });
+          saveFavs(favs);
+          ytStatus.textContent = "Saved to Favorites dropdown.";
+          syncFavDropdown(url);
+        }
       });
 
-      miscClearBtn.addEventListener("click", function () {
-        miscTitle.value = "";
-        miscUrl.value = "";
-        ytFrame.src = "";
-        ytFrameWrap.classList.remove("visible");
-        miscStatus.textContent = "Cleared.";
-        syncFavUI();
+      favPlayBtn.addEventListener("click", function () {
+        var chosenUrl = favSelect.value;
+        if (!chosenUrl) {
+          ytStatus.textContent = "No favorite selected.";
+          return;
+        }
+        var favs = loadFavs();
+        var match = favs.find(function (item) { return item.url === chosenUrl; });
+        ytUrl.value = chosenUrl;
+        ytTitle.value = (match && match.title && match.title !== chosenUrl) ? match.title : ytTitle.value;
+        syncFavDropdown(chosenUrl);
+        playYouTube();
       });
 
-      miscUrl.addEventListener("input", syncFavUI);
-      syncFavUI();
+      favRemoveBtn.addEventListener("click", function () {
+        var chosenUrl = favSelect.value;
+        if (!chosenUrl) return;
+        var updated = loadFavs().filter(function (item) { return item.url !== chosenUrl; });
+        saveFavs(updated);
+        ytStatus.textContent = "Removed favorite.";
+        syncFavDropdown("");
+      });
+
+      ytClearBtn.addEventListener("click", function () {
+        ytTitle.value = "";
+        ytUrl.value = "";
+        stopYouTubePlayback();
+        ytStatus.textContent = "Cleared.";
+        syncFavDropdown("");
+      });
+
+      ytUrl.addEventListener("input", function () {
+        syncFavDropdown();
+      });
+      syncFavDropdown("");
 
       // Discreet launch ("Welcome to Moe FM") & return ("Welcome back.") pill
       var pill = document.getElementById("welcomePill");
