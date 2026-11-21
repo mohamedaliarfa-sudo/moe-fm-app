@@ -15,6 +15,7 @@
       --muted: #b9a796;
       --accent: #e07a2b;
       --accent-soft: rgba(224, 122, 43, 0.16);
+      --star: #f5b942;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -24,12 +25,13 @@
       background-color: var(--bg);
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      scroll-behavior: smooth;
     }
     body {
       background: radial-gradient(circle at top, #241912 0%, var(--bg) 65%);
       padding-top: calc(18px + env(safe-area-inset-top));
       padding-right: calc(14px + env(safe-area-inset-right));
-      padding-bottom: calc(36px + env(safe-area-inset-bottom));
+      padding-bottom: calc(74px + env(safe-area-inset-bottom));
       padding-left: calc(14px + env(safe-area-inset-left));
     }
     .wrap {
@@ -44,10 +46,28 @@
       border-radius: 18px;
       padding: 16px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      scroll-margin-top: calc(18px + env(safe-area-inset-top));
+    }
+    .box-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     h1 { margin: 0 0 4px; font-size: 1.5rem; letter-spacing: 0.02em; }
-    .sub { color: var(--muted); font-size: 0.9rem; margin: 0; }
-    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    h2 { margin: 0; font-size: 1.05rem; letter-spacing: 0.01em; }
+    .box-tag {
+      font-size: 0.75rem;
+      color: #ffbe88;
+      background: var(--accent-soft);
+      border: 1px solid rgba(224, 122, 43, 0.3);
+      padding: 3px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .sub { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .badge {
       background: var(--accent-soft);
       color: #ffbe88;
@@ -89,9 +109,9 @@
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
-    .station-title { font-size: 1.15rem; font-weight: 700; margin: 0 0 4px; }
-    .station-meta { color: var(--muted); font-size: 0.85rem; margin: 0; }
-    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+    .station-title { font-size: 1.12rem; font-weight: 700; margin: 0 0 4px; }
+    .station-meta { color: var(--muted); font-size: 0.84rem; margin: 0; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
     select, input[type="text"] {
       width: 100%;
       background: var(--card-2);
@@ -99,19 +119,51 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 11px 12px;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
+      font-size: 0.94rem;
+      margin-bottom: 10px;
     }
-    optgroup { color: #ffbe88; font-weight: 700; }
-    option { color: var(--text); background: var(--card-2); }
+    .station-list {
+      display: grid;
+      gap: 8px;
+    }
+    .station-btn {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .station-btn.selected {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: #ffbe88;
+    }
+    .station-pill {
+      font-size: 0.72rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
     .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-    button {
+    button, a.btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
       background: var(--card-2);
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px 14px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
     }
@@ -125,34 +177,127 @@
       border-color: var(--accent);
       color: #ffbe88;
     }
+    .star-btn.starred {
+      border-color: var(--star);
+      color: var(--star);
+      background: rgba(245, 185, 66, 0.14);
+    }
     .slider-box { margin-bottom: 12px; }
-    .slider-top { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+    .slider-top { display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 4px; }
     input[type="range"] { width: 100%; accent-color: var(--accent); }
-    .status { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+    .status { font-size: 0.84rem; color: var(--muted); margin-top: 6px; }
     .custom-row { display: grid; gap: 8px; }
+    .yt-frame-wrap {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0b0806;
+      border: 1px solid var(--border);
+      margin-top: 10px;
+      display: none;
+    }
+    .yt-frame-wrap.visible { display: block; }
+    .yt-frame-wrap iframe, .yt-frame-wrap #ytPlayerHost {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .fav-banner {
+      font-size: 0.82rem;
+      color: #ffd98a;
+      background: rgba(245, 185, 66, 0.1);
+      border: 1px solid rgba(245, 185, 66, 0.28);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-top: 8px;
+    }
+
+    /* Sleek, Discreet Launch Pill */
+    .welcome-pill {
+      position: fixed;
+      left: calc(16px + env(safe-area-inset-left));
+      right: calc(16px + env(safe-area-inset-right));
+      bottom: calc(14px + env(safe-area-inset-bottom));
+      max-width: 500px;
+      margin: 0 auto;
+      z-index: 50;
+      background: rgba(29, 22, 17, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 190, 136, 0.2);
+      border-radius: 999px;
+      padding: 9px 14px 9px 16px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    .welcome-pill.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .welcome-pill.hiding {
+      opacity: 0;
+      transform: translateY(14px);
+      pointer-events: none;
+    }
+    .welcome-text {
+      font-size: 0.81rem;
+      line-height: 1.3;
+      color: var(--muted);
+      margin: 0;
+    }
+    .welcome-text strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .welcome-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 4px 6px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .welcome-close:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
+    <!-- Header Box -->
     <div class="card">
       <h1>Moe FM</h1>
-      <p class="sub">Vinyl & Hi-Fi Café — Radio & Audio Lounge</p>
+      <p class="sub" style="margin-bottom: 8px;">Vinyl & Hi-Fi Café — Radio & Audio Lounge</p>
       <div class="badge-row">
         <span class="badge" id="warmthBadge">Warmth +2 dB</span>
         <span class="badge" id="voiceBadge">Voice Clarity Off</span>
       </div>
     </div>
 
+    <!-- Vinyl Deck & Audio Box -->
     <div class="card">
       <div class="deck">
         <div class="vinyl" id="vinylDisc" aria-hidden="true"></div>
         <div>
-          <p class="station-title" id="stationTitle">1. CBC Radio One (Ottawa)</p>
+          <p class="station-title" id="stationTitle">CBC Radio One (Ottawa)</p>
           <p class="station-meta" id="stationMeta">Local Radio • Ottawa-Gatineau</p>
         </div>
       </div>
 
-      <label for="channelSelect">Stream Selector (1 – 2 – 3 & Stations)</label>
+      <label for="channelSelect">Active Channel Selector</label>
       <select id="channelSelect"></select>
 
       <div class="controls">
@@ -177,17 +322,97 @@
         <input id="warmthSlider" type="range" min="-4" max="8" step="1" value="2" />
       </div>
 
-      <div class="status" id="statusText">Ready — select a channel and tap Play.</div>
+      <div class="status" id="statusText">Ready — tap a station or press Play.</div>
+      <div class="controls" style="margin-top: 10px; margin-bottom: 0;">
+        <a class="btn-link" id="webStreamLink" href="https://www.cbc.ca/listen/live-radio/1-100-cbc-radio-one-ottawa" target="_blank" rel="noopener noreferrer">Open Station Player</a>
+      </div>
     </div>
 
-    <div class="card">
-      <label for="customName">Add Custom Stream URL</label>
+    <!-- Local Radio Box -->
+    <div class="card" id="localBox">
+      <div class="box-header">
+        <h2>Local Radio</h2>
+        <span class="box-tag">Ottawa–Gatineau</span>
+      </div>
+      <p class="sub">Hometown public & local broadcasts.</p>
+      <div class="station-list" id="localButtons"></div>
+    </div>
+
+    <!-- International Box -->
+    <div class="card" id="intlBox">
+      <div class="box-header">
+        <h2>International</h2>
+        <span class="box-tag">A–Z</span>
+      </div>
+      <p class="sub">Global news, public radio & world stations.</p>
+      <div class="station-list" id="intlButtons"></div>
+    </div>
+
+    <!-- Misc Box (Continuous Artist Mix + Favorite Star) -->
+    <div class="card" id="miscBox">
+      <div class="box-header">
+        <h2>Misc</h2>
+        <span class="box-tag">Continuous Mix</span>
+      </div>
+      <p class="sub">Paste a YouTube song link to auto-play the artist radio mix & star your favorite.</p>
+
+      <div class="custom-row">
+        <input id="miscTitle" type="text" placeholder="Optional label (e.g., Artist / Vibe)" />
+        <input id="miscUrl" type="text" placeholder="Paste YouTube URL (watch, youtu.be, shorts, or playlist)" />
+        <div class="controls" style="margin-bottom: 0;">
+          <button class="primary" id="miscPlayBtn" type="button">Play Link</button>
+          <button class="active" id="miscMixBtn" type="button" aria-pressed="true">Artist Radio: On</button>
+          <button id="miscNextBtn" type="button">Next Track ⏭</button>
+          <button class="star-btn" id="miscStarBtn" type="button" aria-pressed="false" title="Favorite this link">★ Favorite</button>
+          <button id="miscClearBtn" type="button">Clear</button>
+        </div>
+      </div>
+
+      <div class="fav-banner" id="miscFavDisplay">Saved Favorite: None yet — click ★ Favorite to save one.</div>
+      <div class="status" id="miscStatus">Paste a YouTube URL and tap Play Link.</div>
+
+      <div class="yt-frame-wrap" id="ytFrameWrap">
+        <div id="ytPlayerHost"></div>
+      </div>
+
+      <div class="controls" style="margin-top: 10px; margin-bottom: 0;">
+        <a class="btn-link" id="openYtExternalBtn" href="https://m.youtube.com" target="_blank" rel="noopener noreferrer">Open in YouTube App</a>
+      </div>
+    </div>
+
+    <!-- Spotify Box -->
+    <div class="card" id="spotifyBox">
+      <div class="box-header">
+        <h2>Spotify</h2>
+        <span class="box-tag">Quick Launch</span>
+      </div>
+      <p class="sub">Jump straight to your playlists when switching from live radio.</p>
+      <div class="controls" style="margin-bottom: 0;">
+        <a class="btn-link" href="spotify://">Launch Spotify App</a>
+        <a class="btn-link" href="https://open.spotify.com" target="_blank" rel="noopener noreferrer">Open Spotify Web</a>
+      </div>
+    </div>
+
+    <!-- Custom Stream Box -->
+    <div class="card" id="customBox">
+      <div class="box-header">
+        <h2>Custom Stream</h2>
+        <span class="box-tag">Add URL</span>
+      </div>
       <div class="custom-row">
         <input id="customName" type="text" placeholder="Station name" />
         <input id="customUrl" type="text" placeholder="Direct stream URL (.m3u8, .mp3, .aac)" />
-        <button id="addStreamBtn" type="button">Add & Select Stream</button>
+        <button id="addStreamBtn" type="button">Add & Play Stream</button>
       </div>
     </div>
+  </div>
+
+  <!-- Sleek, Discreet Launch Pill -->
+  <div class="welcome-pill" id="welcomePill" role="status" aria-live="polite">
+    <p class="welcome-text">
+      <strong>Welcome back.</strong> Explore worldwide or pick your favourite genres.
+    </p>
+    <button class="welcome-close" id="welcomeCloseBtn" type="button" aria-label="Dismiss">✕</button>
   </div>
 
   <script>
@@ -195,17 +420,23 @@
       {
         title: "CBC Radio One (Ottawa)",
         meta: "Local Radio • CBC Ottawa",
-        url: "https://cbcradiolive.akamaized.net/hls/live/2041037/ES_R1ETT/master.m3u8"
+        tag: "CBC",
+        url: "https://cbcradiolive.akamaized.net/hls/live/2041037/ES_R1ETT/master.m3u8",
+        webUrl: "https://www.cbc.ca/listen/live-radio/1-100-cbc-radio-one-ottawa"
       },
       {
         title: "ICI Radio-Canada Première (Ottawa-Gatineau)",
         meta: "Local Radio • Radio-Canada Ottawa-Gatineau",
-        url: "https://rcavliveaudio.akamaized.net/hls/live/2006652/P-2OOTT0_OTT/master.m3u8"
+        tag: "Radio-Canada",
+        url: "https://rcavliveaudio.akamaized.net/hls/live/2006652/P-2OOTT0_OTT/master.m3u8",
+        webUrl: "https://ici.radio-canada.ca/ohdio/premiere"
       },
       {
         title: "1200 AM Ottawa",
         meta: "Local Radio • Ottawa 1200 AM",
-        url: "http://208.92.55.57/CFGOAM_SC"
+        tag: "1200 AM",
+        url: "http://208.92.55.57/CFGOAM_SC",
+        webUrl: "https://www.tsn.ca/radio/ottawa-1200"
       }
     ];
 
@@ -213,37 +444,73 @@
       {
         title: "Al Jazeera English",
         meta: "International • Al Jazeera",
-        url: "https://www.aljazeera.com/audio/live/"
+        tag: "News",
+        url: "http://aljazeera-eng-apple-live.adaptive.level3.net/apple/aljazeera/english/160audio.m3u8",
+        webUrl: "https://www.aljazeera.com/audio/live/"
       },
       {
         title: "BBC Radio 2",
         meta: "International • BBC UK",
-        url: "http://lsn.lv/bbcradio.m3u8?station=bbc_radio_two&bitrate=96000&uk=1"
+        tag: "BBC",
+        url: "http://lsn.lv/bbcradio.m3u8?station=bbc_radio_two&bitrate=96000&uk=1",
+        webUrl: "https://www.bbc.co.uk/sounds/play/live:bbc_radio_two"
       },
       {
         title: "BBC Radio 4",
         meta: "International • BBC UK",
-        url: "http://as-hls-ww-live.akamaized.net/pool_904/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=320000.m3u8"
+        tag: "BBC",
+        url: "http://as-hls-ww-live.akamaized.net/pool_904/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=320000.m3u8",
+        webUrl: "https://www.bbc.co.uk/sounds/play/live:bbc_radio_fourfm"
       },
       {
         title: "BBC World Service",
         meta: "International • BBC UK",
-        url: "https://as-hls-ww-live.akamaized.net/pool_87948813/live/ww/bbc_world_service/bbc_world_service.isml/bbc_world_service-audio=320000.norewind.m3u8"
+        tag: "BBC",
+        url: "https://as-hls-ww-live.akamaized.net/pool_87948813/live/ww/bbc_world_service/bbc_world_service.isml/bbc_world_service-audio=320000.norewind.m3u8",
+        webUrl: "https://www.bbc.co.uk/sounds/play/live:bbc_world_service"
+      },
+      {
+        title: "Jawhara FM (Tunisia)",
+        meta: "International • Tunisia",
+        tag: "Tunisia",
+        url: "https://www.jawharafm.net/fr/live/56",
+        webUrl: "https://www.jawharafm.net/fr/live/56"
+      },
+      {
+        title: "Mosaïque FM (Tunisia)",
+        meta: "International • Tunisia",
+        tag: "Tunisia",
+        url: "https://www.mosaiquefm.net/fr/player/18/live",
+        webUrl: "https://www.mosaiquefm.net/fr/player/18/live"
       },
       {
         title: "NPR",
         meta: "International • Public Radio",
-        url: "https://tunein.com/radio/Stream-NPR-c34060079/"
+        tag: "NPR",
+        url: "https://npr-ice.streamguys1.com/live.mp3",
+        webUrl: "https://www.npr.org"
+      },
+      {
+        title: "Radio Tunis Nationale (Tunisia)",
+        meta: "International • Tunisia",
+        tag: "Tunisia",
+        url: "https://www.radionationale.tn/",
+        webUrl: "https://www.radionationale.tn/"
       },
       {
         title: "RFI (Radio France Internationale)",
         meta: "International • France Médias Monde",
-        url: "http://live02.rfi.fr/rfimonde-96k.mp3"
+        tag: "RFI",
+        url: "http://live02.rfi.fr/rfimonde-96k.mp3",
+        webUrl: "https://www.rfi.fr/en/live"
       }
     ].sort((a, b) => a.title.localeCompare(b.title));
 
     const stations = [];
+    const stationButtons = [];
     const channelSelect = document.getElementById("channelSelect");
+    const localButtonsEl = document.getElementById("localButtons");
+    const intlButtonsEl = document.getElementById("intlButtons");
     const stationTitle = document.getElementById("stationTitle");
     const stationMeta = document.getElementById("stationMeta");
     const playBtn = document.getElementById("playBtn");
@@ -257,28 +524,30 @@
     const voiceBadge = document.getElementById("voiceBadge");
     const statusText = document.getElementById("statusText");
     const vinylDisc = document.getElementById("vinylDisc");
+    const webStreamLink = document.getElementById("webStreamLink");
 
-    function appendGroup(list, groupEl) {
+    function populateBox(list, containerEl) {
       list.forEach((item) => {
         const idx = stations.length;
-        const numberedTitle = (idx + 1) + " — " + item.title;
-        stations.push({ ...item, numberedTitle });
+        stations.push(item);
+
         const opt = document.createElement("option");
         opt.value = String(idx);
-        opt.textContent = numberedTitle;
-        groupEl.appendChild(opt);
+        opt.textContent = item.title;
+        channelSelect.appendChild(opt);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "station-btn";
+        btn.innerHTML = `<span>${item.title}</span><span class="station-pill">${item.tag || "Stream"}</span>`;
+        btn.addEventListener("click", () => selectStation(idx, true));
+        containerEl.appendChild(btn);
+        stationButtons[idx] = btn;
       });
     }
 
-    const localGroup = document.createElement("optgroup");
-    localGroup.label = "Local Radio";
-    channelSelect.appendChild(localGroup);
-    appendGroup(localStations, localGroup);
-
-    const intlGroup = document.createElement("optgroup");
-    intlGroup.label = "International (A–Z)";
-    channelSelect.appendChild(intlGroup);
-    appendGroup(internationalStations, intlGroup);
+    populateBox(localStations, localButtonsEl);
+    populateBox(internationalStations, intlButtonsEl);
 
     const audio = new Audio();
     audio.crossOrigin = "anonymous";
@@ -315,134 +584,4 @@
       gainNode.connect(audioCtx.destination);
     }
 
-    function selectStation(index, autoplay = false) {
-      const st = stations[index];
-      if (!st) return;
-      channelSelect.value = String(index);
-      stationTitle.textContent = st.numberedTitle;
-      stationMeta.textContent = st.meta;
-      if (autoplay) {
-        startPlayback();
-      }
-    }
-
-    async function startPlayback() {
-      const st = stations[Number(channelSelect.value)] || stations[0];
-      initAudioGraph();
-      if (audioCtx && audioCtx.state === "suspended") {
-        await audioCtx.resume();
-      }
-
-      if (hls) {
-        hls.destroy();
-        hls = null;
-      }
-
-      statusText.textContent = "Connecting to " + st.title + "...";
-
-      if (st.url.includes(".m3u8") && window.Hls && window.Hls.isSupported()) {
-        hls = new window.Hls();
-        hls.loadSource(st.url);
-        hls.attachMedia(audio);
-        hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
-          audio.play().catch(() => {
-            statusText.textContent = "Tap Play again to start audio.";
-          });
-        });
-        hls.on(window.Hls.Events.ERROR, (_, data) => {
-          if (data && data.fatal) {
-            statusText.textContent = "Direct stream unavailable for this station.";
-            vinylDisc.classList.remove("spinning");
-          }
-        });
-      } else {
-        audio.src = st.url;
-        audio.play().catch(() => {
-          statusText.textContent = "Direct audio stream unavailable here.";
-        });
-      }
-    }
-
-    function stopPlayback() {
-      if (hls) {
-        hls.destroy();
-        hls = null;
-      }
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      vinylDisc.classList.remove("spinning");
-      statusText.textContent = "Stopped.";
-    }
-
-    audio.addEventListener("playing", () => {
-      vinylDisc.classList.add("spinning");
-      statusText.textContent = "Playing — " + (stations[Number(channelSelect.value)]?.title || "Moe FM");
-    });
-
-    audio.addEventListener("pause", () => {
-      vinylDisc.classList.remove("spinning");
-    });
-
-    audio.addEventListener("error", () => {
-      vinylDisc.classList.remove("spinning");
-      statusText.textContent = "Could not play direct stream URL for this station.";
-    });
-
-    channelSelect.addEventListener("change", () => {
-      const wasPlaying = !audio.paused;
-      selectStation(Number(channelSelect.value), wasPlaying);
-    });
-
-    playBtn.addEventListener("click", startPlayback);
-    stopBtn.addEventListener("click", stopPlayback);
-
-    voiceBtn.addEventListener("click", () => {
-      voiceBoost = !voiceBoost;
-      voiceBtn.classList.toggle("active", voiceBoost);
-      voiceBadge.textContent = voiceBoost ? "Voice Clarity On" : "Voice Clarity Off";
-      if (voiceFilter && audioCtx) {
-        voiceFilter.gain.setTargetAtTime(voiceBoost ? 5 : 0, audioCtx.currentTime, 0.05);
-      }
-    });
-
-    volSlider.addEventListener("input", () => {
-      const pct = Number(volSlider.value);
-      volVal.textContent = pct + "%";
-      if (gainNode && audioCtx) {
-        gainNode.gain.setTargetAtTime(pct / 100, audioCtx.currentTime, 0.04);
-      }
-    });
-
-    warmthSlider.addEventListener("input", () => {
-      const db = Number(warmthSlider.value);
-      const formatted = (db >= 0 ? "+" : "") + db + " dB";
-      warmthVal.textContent = formatted;
-      warmthBadge.textContent = "Warmth " + formatted;
-      if (warmthFilter && audioCtx) {
-        warmthFilter.gain.setTargetAtTime(db, audioCtx.currentTime, 0.05);
-      }
-    });
-
-    document.getElementById("addStreamBtn").addEventListener("click", () => {
-      const nameInput = document.getElementById("customName");
-      const urlInput = document.getElementById("customUrl");
-      const url = urlInput.value.trim();
-      if (!url) return;
-      const idx = stations.length;
-      const title = nameInput.value.trim() || ("Custom Stream " + (idx + 1));
-      const numberedTitle = (idx + 1) + " — " + title;
-      stations.push({ title, numberedTitle, meta: "Custom Stream URL", url });
-      const opt = document.createElement("option");
-      opt.value = String(idx);
-      opt.textContent = numberedTitle;
-      intlGroup.appendChild(opt);
-      nameInput.value = "";
-      urlInput.value = "";
-      selectStation(idx, true);
-    });
-
-    selectStation(0, false);
-  </script>
-</body>
-</html>
+   
