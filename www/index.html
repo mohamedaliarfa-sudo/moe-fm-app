@@ -2,487 +2,447 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Moe FM — Vinyl & Hi-Fi Café</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root {
-      --bg: #12100e;
-      --panel: #1c1815;
-      --panel-2: #25201c;
-      --ink: #f4ece1;
-      --muted: #b7a794;
-      --accent: #e08a3c;
-      --accent-2: #58a67c;
-      --border: #332b24;
+      --bg: #120e0b;
+      --card: #1d1611;
+      --card-2: #261d17;
+      --border: #3a2c22;
+      --text: #f6efe8;
+      --muted: #b9a796;
+      --accent: #e07a2b;
+      --accent-soft: rgba(224, 122, 43, 0.16);
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
+    * { box-sizing: border-box; }
+    html, body {
       margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+      background-color: var(--bg);
+      color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: radial-gradient(circle at top, #241d17 0%, var(--bg) 65%);
-      color: var(--ink);
-      min-height: 100vh;
-      padding: 16px;
     }
-
-    .app {
-      max-width: 780px;
+    body {
+      background: radial-gradient(circle at top, #241912 0%, var(--bg) 65%);
+      padding-top: calc(18px + env(safe-area-inset-top));
+      padding-right: calc(14px + env(safe-area-inset-right));
+      padding-bottom: calc(36px + env(safe-area-inset-bottom));
+      padding-left: calc(14px + env(safe-area-inset-left));
+    }
+    .wrap {
+      max-width: 540px;
       margin: 0 auto;
-      display: grid;
-      gap: 16px;
-    }
-
-    header {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      letter-spacing: 0.03em;
-    }
-
-    .brand p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .badge {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      color: var(--accent);
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .now-playing {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
       display: grid;
       gap: 14px;
     }
-
-    .np-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .station-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .station-meta {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-top: 4px;
-    }
-
-    .controls-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    button {
-      background: var(--panel-2);
-      color: var(--ink);
+    .card {
+      background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+    h1 { margin: 0 0 4px; font-size: 1.5rem; letter-spacing: 0.02em; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin: 0; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .badge {
+      background: var(--accent-soft);
+      color: #ffbe88;
+      border: 1px solid rgba(224, 122, 43, 0.35);
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .deck {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .vinyl {
+      width: 84px;
+      height: 84px;
+      flex: 0 0 84px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, var(--accent) 0 11px, #191411 12px 14px, transparent 15px),
+        repeating-radial-gradient(circle at center, #111 0 2px, #231e1b 3px 4px);
+      border: 2px solid #45352a;
+      position: relative;
+      animation: spin 4.5s linear infinite;
+      animation-play-state: paused;
+    }
+    .vinyl.spinning { animation-play-state: running; }
+    .vinyl::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      pointer-events: none;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .station-title { font-size: 1.15rem; font-weight: 700; margin: 0 0 4px; }
+    .station-meta { color: var(--muted); font-size: 0.85rem; margin: 0; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+    select, input[type="text"] {
+      width: 100%;
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+    optgroup { color: #ffbe88; font-weight: 700; }
+    option { color: var(--text); background: var(--card-2); }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    button {
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       padding: 10px 14px;
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
     }
-
     button.primary {
       background: var(--accent);
-      color: #16110c;
+      color: #160e08;
       border-color: var(--accent);
     }
-
     button.active {
-      border-color: var(--accent-2);
-      color: var(--accent-2);
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: #ffbe88;
     }
-
-    .slider-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 12px;
-      flex: 1 1 220px;
-    }
-
-    .slider-group label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .slider-group input[type="range"] {
-      flex: 1;
-      accent-color: var(--accent);
-    }
-
-    details {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-
-    summary {
-      list-style: none;
-      padding: 16px 18px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--panel);
-    }
-
-    summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .section-body {
-      padding: 0 18px 18px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .station-card {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .station-card strong {
-      display: block;
-      font-size: 0.98rem;
-    }
-
-    .station-card span {
-      color: var(--muted);
-      font-size: 0.83rem;
-    }
-
-    .custom-form {
-      display: grid;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    input[type="text"], input[type="url"] {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--ink);
-      font-size: 0.92rem;
-    }
-
-    .status {
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+    .slider-box { margin-bottom: 12px; }
+    .slider-top { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+    .status { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+    .custom-row { display: grid; gap: 8px; }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="brand">
-        <h1>Moe FM</h1>
-        <p>Vinyl & Hi-Fi Café — Radio & Audio Lounge</p>
+  <div class="wrap">
+    <div class="card">
+      <h1>Moe FM</h1>
+      <p class="sub">Vinyl & Hi-Fi Café — Radio & Audio Lounge</p>
+      <div class="badge-row">
+        <span class="badge" id="warmthBadge">Warmth +2 dB</span>
+        <span class="badge" id="voiceBadge">Voice Clarity Off</span>
       </div>
-      <div class="badge" id="filterStatus">Warm Analog • Voice Clarity Off</div>
-    </header>
+    </div>
 
-    <section class="now-playing">
-      <div class="np-top">
+    <div class="card">
+      <div class="deck">
+        <div class="vinyl" id="vinylDisc" aria-hidden="true"></div>
         <div>
-          <p class="station-title" id="currentTitle">Select a station to tune in</p>
-          <div class="station-meta" id="currentMeta">Ready on deck</div>
-        </div>
-        <div class="controls-row">
-          <button class="primary" id="playBtn" type="button">Play</button>
-          <button id="stopBtn" type="button">Stop</button>
-          <button id="clarityBtn" type="button">Voice Clarity Boost</button>
+          <p class="station-title" id="stationTitle">1. CBC Radio One (Ottawa)</p>
+          <p class="station-meta" id="stationMeta">Local Radio • Ottawa-Gatineau</p>
         </div>
       </div>
 
-      <div class="controls-row">
-        <div class="slider-group">
-          <label for="volumeSlider">Volume</label>
-          <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.85" />
-        </div>
-        <div class="slider-group">
-          <label for="warmthSlider">Café Warmth</label>
-          <input id="warmthSlider" type="range" min="-6" max="8" step="0.5" value="2" />
-        </div>
+      <label for="channelSelect">Stream Selector (1 – 2 – 3 & Stations)</label>
+      <select id="channelSelect"></select>
+
+      <div class="controls">
+        <button class="primary" id="playBtn" type="button">Play</button>
+        <button id="stopBtn" type="button">Stop</button>
+        <button id="voiceBtn" type="button">Voice Clarity Boost</button>
       </div>
 
-      <div class="status" id="playerStatus">Tip: Tap Voice Clarity Boost to lift vocal/midrange frequencies (around 2.2 kHz).</div>
-      <audio id="audioPlayer" crossorigin="anonymous" preload="none"></audio>
-    </section>
-
-    <details open>
-      <summary>
-        <span>Hi-Fi Café & Lounge Streams</span>
-        <span>▾</span>
-      </summary>
-      <div class="section-body" id="cafeStations"></div>
-    </details>
-
-    <details>
-      <summary>
-        <span>Add Custom Stream URL</span>
-        <span>▾</span>
-      </summary>
-      <div class="section-body">
-        <form class="custom-form" id="customForm">
-          <input type="text" id="customName" placeholder="Station or playlist name (e.g., Late Night Jazz)" required />
-          <input type="url" id="customUrl" placeholder="Direct audio stream URL (https://...)" required />
-          <button class="primary" type="submit">Add & Play Stream</button>
-        </form>
-      </div>
-    </details>
-
-    <details>
-      <summary>
-        <span>Spotify & External Player Quick Launch</span>
-        <span>▾</span>
-      </summary>
-      <div class="section-body">
-        <p class="station-meta" style="margin:0;">
-          Open Spotify directly on your device when switching from live radio streams to your personal playlists.
-        </p>
-        <div class="controls-row">
-          <a href="https://open.spotify.com" target="_blank" rel="noopener noreferrer">
-            <button type="button">Open Spotify Web</button>
-          </a>
-          <a href="spotify:">
-            <button type="button">Launch Spotify App</button>
-          </a>
+      <div class="slider-box">
+        <div class="slider-top">
+          <span>Volume</span>
+          <span id="volVal">85%</span>
         </div>
+        <input id="volSlider" type="range" min="0" max="100" value="85" />
       </div>
-    </details>
+
+      <div class="slider-box">
+        <div class="slider-top">
+          <span>Café Warmth</span>
+          <span id="warmthVal">+2 dB</span>
+        </div>
+        <input id="warmthSlider" type="range" min="-4" max="8" step="1" value="2" />
+      </div>
+
+      <div class="status" id="statusText">Ready — select a channel and tap Play.</div>
+    </div>
+
+    <div class="card">
+      <label for="customName">Add Custom Stream URL</label>
+      <div class="custom-row">
+        <input id="customName" type="text" placeholder="Station name" />
+        <input id="customUrl" type="text" placeholder="Direct stream URL (.m3u8, .mp3, .aac)" />
+        <button id="addStreamBtn" type="button">Add & Select Stream</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    const defaultStations = [
+    const localStations = [
       {
-        name: "Radio Paradise — Main Mix",
-        genre: "Eclectic Hi-Fi • FLAC/AAC Stream",
-        url: "https://stream.radioparadise.com/aac-320"
+        title: "CBC Radio One (Ottawa)",
+        meta: "Local Radio • CBC Ottawa",
+        url: "https://cbcradiolive.akamaized.net/hls/live/2041037/ES_R1ETT/master.m3u8"
       },
       {
-        name: "Radio Paradise — Mellow Mix",
-        genre: "Warm Downtempo & Acoustic",
-        url: "https://stream.radioparadise.com/mellow-320"
+        title: "ICI Radio-Canada Première (Ottawa-Gatineau)",
+        meta: "Local Radio • Radio-Canada Ottawa-Gatineau",
+        url: "https://rcavliveaudio.akamaized.net/hls/live/2006652/P-2OOTT0_OTT/master.m3u8"
       },
       {
-        name: "SomaFM — Groove Salad",
-        genre: "Ambient / Chillout Café",
-        url: "https://ice1.somafm.com/groovesalad-256-mp3"
-      },
-      {
-        name: "SomaFM — Secret Agent",
-        genre: "Downtempo Lounge & Soundtrack",
-        url: "https://ice1.somafm.com/secretagent-128-mp3"
+        title: "1200 AM Ottawa",
+        meta: "Local Radio • Ottawa 1200 AM",
+        url: "http://208.92.55.57/CFGOAM_SC"
       }
     ];
 
-    const audio = document.getElementById("audioPlayer");
+    const internationalStations = [
+      {
+        title: "Al Jazeera English",
+        meta: "International • Al Jazeera",
+        url: "https://www.aljazeera.com/audio/live/"
+      },
+      {
+        title: "BBC Radio 2",
+        meta: "International • BBC UK",
+        url: "http://lsn.lv/bbcradio.m3u8?station=bbc_radio_two&bitrate=96000&uk=1"
+      },
+      {
+        title: "BBC Radio 4",
+        meta: "International • BBC UK",
+        url: "http://as-hls-ww-live.akamaized.net/pool_904/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=320000.m3u8"
+      },
+      {
+        title: "BBC World Service",
+        meta: "International • BBC UK",
+        url: "https://as-hls-ww-live.akamaized.net/pool_87948813/live/ww/bbc_world_service/bbc_world_service.isml/bbc_world_service-audio=320000.norewind.m3u8"
+      },
+      {
+        title: "NPR",
+        meta: "International • Public Radio",
+        url: "https://tunein.com/radio/Stream-NPR-c34060079/"
+      },
+      {
+        title: "RFI (Radio France Internationale)",
+        meta: "International • France Médias Monde",
+        url: "http://live02.rfi.fr/rfimonde-96k.mp3"
+      }
+    ].sort((a, b) => a.title.localeCompare(b.title));
+
+    const stations = [];
+    const channelSelect = document.getElementById("channelSelect");
+    const stationTitle = document.getElementById("stationTitle");
+    const stationMeta = document.getElementById("stationMeta");
     const playBtn = document.getElementById("playBtn");
     const stopBtn = document.getElementById("stopBtn");
-    const clarityBtn = document.getElementById("clarityBtn");
-    const volumeSlider = document.getElementById("volumeSlider");
+    const voiceBtn = document.getElementById("voiceBtn");
+    const volSlider = document.getElementById("volSlider");
+    const volVal = document.getElementById("volVal");
     const warmthSlider = document.getElementById("warmthSlider");
-    const currentTitle = document.getElementById("currentTitle");
-    const currentMeta = document.getElementById("currentMeta");
-    const playerStatus = document.getElementById("playerStatus");
-    const filterStatus = document.getElementById("filterStatus");
-    const cafeStationsEl = document.getElementById("cafeStations");
-    const customForm = document.getElementById("customForm");
+    const warmthVal = document.getElementById("warmthVal");
+    const warmthBadge = document.getElementById("warmthBadge");
+    const voiceBadge = document.getElementById("voiceBadge");
+    const statusText = document.getElementById("statusText");
+    const vinylDisc = document.getElementById("vinylDisc");
 
+    function appendGroup(list, groupEl) {
+      list.forEach((item) => {
+        const idx = stations.length;
+        const numberedTitle = (idx + 1) + " — " + item.title;
+        stations.push({ ...item, numberedTitle });
+        const opt = document.createElement("option");
+        opt.value = String(idx);
+        opt.textContent = numberedTitle;
+        groupEl.appendChild(opt);
+      });
+    }
+
+    const localGroup = document.createElement("optgroup");
+    localGroup.label = "Local Radio";
+    channelSelect.appendChild(localGroup);
+    appendGroup(localStations, localGroup);
+
+    const intlGroup = document.createElement("optgroup");
+    intlGroup.label = "International (A–Z)";
+    channelSelect.appendChild(intlGroup);
+    appendGroup(internationalStations, intlGroup);
+
+    const audio = new Audio();
+    audio.crossOrigin = "anonymous";
+    let hls = null;
     let audioCtx = null;
-    let sourceNode = null;
     let warmthFilter = null;
-    let clarityFilter = null;
+    let voiceFilter = null;
     let gainNode = null;
-    let clarityEnabled = false;
-    let currentStation = null;
+    let voiceBoost = false;
 
-    function setupAudioGraph() {
+    function initAudioGraph() {
       if (audioCtx) return;
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContextClass();
-
-      sourceNode = audioCtx.createMediaElementSource(audio);
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+      const source = audioCtx.createMediaElementSource(audio);
 
       warmthFilter = audioCtx.createBiquadFilter();
       warmthFilter.type = "lowshelf";
       warmthFilter.frequency.value = 180;
-      warmthFilter.gain.value = parseFloat(warmthSlider.value);
+      warmthFilter.gain.value = Number(warmthSlider.value);
 
-      clarityFilter = audioCtx.createBiquadFilter();
-      clarityFilter.type = "peaking";
-      clarityFilter.frequency.value = 2200;
-      clarityFilter.Q.value = 1.4;
-      clarityFilter.gain.value = 0;
+      voiceFilter = audioCtx.createBiquadFilter();
+      voiceFilter.type = "peaking";
+      voiceFilter.frequency.value = 2400;
+      voiceFilter.Q.value = 1.4;
+      voiceFilter.gain.value = voiceBoost ? 5 : 0;
 
       gainNode = audioCtx.createGain();
-      gainNode.gain.value = parseFloat(volumeSlider.value);
+      gainNode.gain.value = Number(volSlider.value) / 100;
 
-      sourceNode.connect(warmthFilter);
-      warmthFilter.connect(clarityFilter);
-      clarityFilter.connect(gainNode);
+      source.connect(warmthFilter);
+      warmthFilter.connect(voiceFilter);
+      voiceFilter.connect(gainNode);
       gainNode.connect(audioCtx.destination);
     }
 
-    function updateFilterBadge() {
-      const clarityText = clarityEnabled ? "Voice Clarity On (+5.5 dB)" : "Voice Clarity Off";
-      filterStatus.textContent = `Warmth ${warmthSlider.value} dB • ${clarityText}`;
-    }
-
-    function renderStations(stations) {
-      cafeStationsEl.innerHTML = "";
-      stations.forEach((st) => {
-        const card = document.createElement("div");
-        card.className = "station-card";
-
-        const info = document.createElement("div");
-        info.innerHTML = `<strong>${st.name}</strong><span>${st.genre || "Live Stream"}</span>`;
-
-        const tuneBtn = document.createElement("button");
-        tuneBtn.textContent = "Tune In";
-        tuneBtn.addEventListener("click", () => playStation(st));
-
-        card.appendChild(info);
-        card.appendChild(tuneBtn);
-        cafeStationsEl.appendChild(card);
-      });
-    }
-
-    async function playStation(station) {
-      currentStation = station;
-      currentTitle.textContent = station.name;
-      currentMeta.textContent = station.genre || "Custom Stream";
-      playerStatus.textContent = "Connecting to stream...";
-
-      try {
-        setupAudioGraph();
-        if (audioCtx.state === "suspended") {
-          await audioCtx.resume();
-        }
-        audio.src = station.url;
-        await audio.play();
-        playBtn.textContent = "Pause";
-        playerStatus.textContent = "Playing live audio.";
-      } catch (err) {
-        playerStatus.textContent = "Could not play stream directly (check URL or stream CORS/format).";
+    function selectStation(index, autoplay = false) {
+      const st = stations[index];
+      if (!st) return;
+      channelSelect.value = String(index);
+      stationTitle.textContent = st.numberedTitle;
+      stationMeta.textContent = st.meta;
+      if (autoplay) {
+        startPlayback();
       }
     }
 
-    playBtn.addEventListener("click", async () => {
-      if (!currentStation && defaultStations.length > 0) {
-        await playStation(defaultStations[0]);
-        return;
-      }
-      if (!audio.src) return;
-
-      setupAudioGraph();
-      if (audioCtx.state === "suspended") {
+    async function startPlayback() {
+      const st = stations[Number(channelSelect.value)] || stations[0];
+      initAudioGraph();
+      if (audioCtx && audioCtx.state === "suspended") {
         await audioCtx.resume();
       }
 
-      if (audio.paused) {
-        try {
-          await audio.play();
-          playBtn.textContent = "Pause";
-          playerStatus.textContent = "Resumed playback.";
-        } catch (e) {
-          playerStatus.textContent = "Playback blocked or stream unavailable.";
-        }
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+
+      statusText.textContent = "Connecting to " + st.title + "...";
+
+      if (st.url.includes(".m3u8") && window.Hls && window.Hls.isSupported()) {
+        hls = new window.Hls();
+        hls.loadSource(st.url);
+        hls.attachMedia(audio);
+        hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
+          audio.play().catch(() => {
+            statusText.textContent = "Tap Play again to start audio.";
+          });
+        });
+        hls.on(window.Hls.Events.ERROR, (_, data) => {
+          if (data && data.fatal) {
+            statusText.textContent = "Direct stream unavailable for this station.";
+            vinylDisc.classList.remove("spinning");
+          }
+        });
       } else {
-        audio.pause();
-        playBtn.textContent = "Play";
-        playerStatus.textContent = "Paused.";
+        audio.src = st.url;
+        audio.play().catch(() => {
+          statusText.textContent = "Direct audio stream unavailable here.";
+        });
+      }
+    }
+
+    function stopPlayback() {
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      vinylDisc.classList.remove("spinning");
+      statusText.textContent = "Stopped.";
+    }
+
+    audio.addEventListener("playing", () => {
+      vinylDisc.classList.add("spinning");
+      statusText.textContent = "Playing — " + (stations[Number(channelSelect.value)]?.title || "Moe FM");
+    });
+
+    audio.addEventListener("pause", () => {
+      vinylDisc.classList.remove("spinning");
+    });
+
+    audio.addEventListener("error", () => {
+      vinylDisc.classList.remove("spinning");
+      statusText.textContent = "Could not play direct stream URL for this station.";
+    });
+
+    channelSelect.addEventListener("change", () => {
+      const wasPlaying = !audio.paused;
+      selectStation(Number(channelSelect.value), wasPlaying);
+    });
+
+    playBtn.addEventListener("click", startPlayback);
+    stopBtn.addEventListener("click", stopPlayback);
+
+    voiceBtn.addEventListener("click", () => {
+      voiceBoost = !voiceBoost;
+      voiceBtn.classList.toggle("active", voiceBoost);
+      voiceBadge.textContent = voiceBoost ? "Voice Clarity On" : "Voice Clarity Off";
+      if (voiceFilter && audioCtx) {
+        voiceFilter.gain.setTargetAtTime(voiceBoost ? 5 : 0, audioCtx.currentTime, 0.05);
       }
     });
 
-    stopBtn.addEventListener("click", () => {
-      audio.pause();
-      audio.currentTime = 0;
-      playBtn.textContent = "Play";
-      playerStatus.textContent = "Stopped.";
-    });
-
-    clarityBtn.addEventListener("click", () => {
-      setupAudioGraph();
-      clarityEnabled = !clarityEnabled;
-      clarityBtn.classList.toggle("active", clarityEnabled);
-      clarityFilter.gain.value = clarityEnabled ? 5.5 : 0;
-      updateFilterBadge();
-    });
-
-    volumeSlider.addEventListener("input", () => {
-      const val = parseFloat(volumeSlider.value);
-      audio.volume = val;
-      if (gainNode) gainNode.gain.value = val;
+    volSlider.addEventListener("input", () => {
+      const pct = Number(volSlider.value);
+      volVal.textContent = pct + "%";
+      if (gainNode && audioCtx) {
+        gainNode.gain.setTargetAtTime(pct / 100, audioCtx.currentTime, 0.04);
+      }
     });
 
     warmthSlider.addEventListener("input", () => {
-      const val = parseFloat(warmthSlider.value);
-      if (warmthFilter) warmthFilter.gain.value = val;
-      updateFilterBadge();
+      const db = Number(warmthSlider.value);
+      const formatted = (db >= 0 ? "+" : "") + db + " dB";
+      warmthVal.textContent = formatted;
+      warmthBadge.textContent = "Warmth " + formatted;
+      if (warmthFilter && audioCtx) {
+        warmthFilter.gain.setTargetAtTime(db, audioCtx.currentTime, 0.05);
+      }
     });
 
-    customForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("customName").value.trim();
-      const url = document.getElementById("customUrl").value.trim();
-      if (!name || !url) return;
-      await playStation({ name, genre: "Custom Stream", url });
-      customForm.reset();
+    document.getElementById("addStreamBtn").addEventListener("click", () => {
+      const nameInput = document.getElementById("customName");
+      const urlInput = document.getElementById("customUrl");
+      const url = urlInput.value.trim();
+      if (!url) return;
+      const idx = stations.length;
+      const title = nameInput.value.trim() || ("Custom Stream " + (idx + 1));
+      const numberedTitle = (idx + 1) + " — " + title;
+      stations.push({ title, numberedTitle, meta: "Custom Stream URL", url });
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = numberedTitle;
+      intlGroup.appendChild(opt);
+      nameInput.value = "";
+      urlInput.value = "";
+      selectStation(idx, true);
     });
 
-    renderStations(defaultStations);
-    updateFilterBadge();
+    selectStation(0, false);
   </script>
 </body>
 </html>
