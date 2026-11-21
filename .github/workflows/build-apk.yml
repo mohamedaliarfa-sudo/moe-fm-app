@@ -38,20 +38,25 @@ jobs:
 
       - name: Configure dark status and navigation bars
         run: |
-          python3 -c '
+          cat << 'EOF' > update_styles.py
           from pathlib import Path
+
+          extras = (
+              '\n        <item name="android:statusBarColor">#120e0b</item>'
+              '\n        <item name="android:navigationBarColor">#120e0b</item>'
+              '\n        <item name="android:windowLightStatusBar">false</item>'
+              '\n        <item name="android:windowLightNavigationBar">false</item>'
+              '\n    </style>'
+          )
+
           for p in Path("android/app/src/main/res").rglob("styles.xml"):
               txt = p.read_text(encoding="utf-8")
-              extras = """
-        <item name="android:statusBarColor">#120e0b</item>
-        <item name="android:navigationBarColor">#120e0b</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-    </style>"""
               if "</style>" in txt and "statusBarColor" not in txt:
                   txt = txt.replace("</style>", extras, 1)
                   p.write_text(txt, encoding="utf-8")
-          '
+          EOF
+          python3 update_styles.py
+          rm -f update_styles.py
 
       - name: Assemble Debug APK
         working-directory: android
