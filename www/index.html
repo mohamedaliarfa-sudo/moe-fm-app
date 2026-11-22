@@ -859,17 +859,23 @@
       }
 
       function playYouTube() {
-        var url = ytUrl.value.trim();
-        var label = ytTitle.value.trim() || "YouTube Track";
-        if (!url) {
+        var rawUrl = ytUrl.value.trim();
+        var label = ytTitle.value.trim();
+        if (!rawUrl) {
           ytStatus.textContent = "Paste a YouTube link or pick a saved favorite from the dropdown.";
           return;
         }
-        var yt = parseYouTube(url);
+        var yt = parseYouTube(rawUrl);
         if (!yt.vid && !yt.list) {
           ytStatus.textContent = "Paste a valid YouTube video or playlist link.";
           return;
         }
+
+        // Normalize bare video IDs into a clean URL so favorites are always valid links
+        var normalizedUrl = yt.vid
+          ? "https://youtu.be/" + yt.vid + (yt.list ? "?list=" + yt.list : "")
+          : rawUrl;
+        ytUrl.value = normalizedUrl;
 
         // Stop radio so YouTube and radio never play at the same time
         stopPlayback();
@@ -880,8 +886,12 @@
           : "https://www.youtube-nocookie.com/embed/videoseries?autoplay=1&playsinline=1&list=" + activeList;
         ytFrame.src = embedUrl;
         ytFrameWrap.classList.add("visible");
-        ytStatus.textContent = activeList ? "Playing Artist Mix: " + label : "Playing: " + label;
-        syncFavDropdown(url);
+
+        var displayLabel = label || normalizedUrl;
+        ytStatus.textContent = activeList
+          ? "Playing Artist Mix: " + displayLabel + " — tap ★ Favorite to save."
+          : "Playing: " + displayLabel + " — tap ★ Favorite to save.";
+        syncFavDropdown(normalizedUrl);
       }
 
       ytPlayBtn.addEventListener("click", playYouTube);
@@ -898,7 +908,7 @@
         var url = ytUrl.value.trim();
         var title = ytTitle.value.trim() || url;
         if (!url) {
-          ytStatus.textContent = "Paste a YouTube link first before starring.";
+          ytStatus.textContent = "Play or paste a YouTube link first before starring.";
           return;
         }
         var favs = loadFavs();
@@ -911,8 +921,9 @@
         } else {
           favs.unshift({ title: title, url: url });
           saveFavs(favs);
-          ytStatus.textContent = "Saved to Favorites dropdown.";
+          ytStatus.textContent = "Saved \"" + title + "\" to Favorites.";
           syncFavDropdown(url);
+          favSelect.value = url;
         }
       });
 
