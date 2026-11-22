@@ -271,7 +271,6 @@
       border: 0;
     }
 
-    /* Slim, box-free collapsible subsection rows */
     .sub-toggle {
       display: flex;
       align-items: center;
@@ -358,7 +357,7 @@
           <button class="welcome-close" id="welcomeCloseBtn" type="button" aria-label="Dismiss">✕</button>
         </div>
       </div>
-      <p class="sub" style="margin-bottom: 8px;">Vinyl & Hi-Fi Café — Radio & Audio Lounge</p>
+      <p class="sub" style="margin-bottom: 8px;">Vinyl &amp; Hi-Fi Café — Radio &amp; Audio Lounge</p>
       <div class="badge-row">
         <span class="badge" id="warmthBadge">Warmth +2 dB</span>
         <span class="badge" id="voiceBadge">Voice Clarity Off</span>
@@ -417,7 +416,7 @@
       </div>
     </div>
 
-    <!-- Collapsible International Box (Caribbean & Latin America included as regions) -->
+    <!-- Collapsible International Box -->
     <div class="card">
       <div class="box-header collapsible" id="intlHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>International</h2>
@@ -484,7 +483,6 @@
           </iframe>
         </div>
 
-        <!-- Slim, box-free collapsible Saved Favorites list -->
         <div class="sub-toggle" id="ytFavToggle" role="button" tabindex="0" aria-expanded="false">
           <span id="ytFavToggleText">Saved Favorites (0)</span>
           <span class="sub-toggle-caret" id="ytFavToggleCaret">▾</span>
@@ -499,7 +497,7 @@
       </div>
     </div>
 
-    <!-- Collapsible Spotify Box with box-free collapsible Saved Playlists list -->
+    <!-- Collapsible Spotify Box -->
     <div class="card">
       <div class="box-header collapsible" id="spCardHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>Spotify</h2>
@@ -537,8 +535,6 @@
 
   <script>
     (function () {
-      // Add verified direct Latin America stream URLs (.m3u8, .mp3, or .aac) here:
-      // { id: 23, groups: ["intl"], title: "Station Name", region: "Latin America", country: "Country", vibes: ["Music", "Talk"], url: "https://..." }
       var catalog = [
         { id: 0, groups: ["local", "intl"], title: "CBC Radio One (Ottawa)", region: "North America", country: "Canada", vibes: ["Public", "Talk"], url: "https://cbcradiolive.akamaized.net/hls/live/2041037/ES_R1ETT/master.m3u8" },
         { id: 1, groups: ["local", "intl"], title: "ICI Radio-Canada Première (Ottawa-Gatineau)", region: "North America", country: "Canada", vibes: ["Public", "Talk"], url: "https://rcavliveaudio.akamaized.net/hls/live/2006652/P-2OOTT0_OTT/master.m3u8" },
@@ -555,6 +551,14 @@
         { id: 20, groups: ["intl"], title: "Zip 103 FM (Jamaica)", region: "Caribbean", country: "Jamaica", vibes: ["Music"], url: "https://stream.zeno.fm/0r5x2x2x2x8uv" },
         { id: 21, groups: ["intl"], title: "WKAQ 580 AM (Puerto Rico)", region: "Caribbean", country: "Puerto Rico", vibes: ["Talk", "News"], url: "https://playerservices.streamtheworld.com/api/livestream-redirect/WKAQAMAAC.aac" },
         { id: 22, groups: ["intl"], title: "RCI Guadeloupe (Caribbean)", region: "Caribbean", country: "Guadeloupe", vibes: ["Music", "News", "Talk"], url: "https://rci.ice.infomaniak.ch/rciguadeloupe-128.mp3" },
+
+        // Latin America region inside International
+        { id: 23, groups: ["intl"], title: "Radio UNAM 96.1 FM", region: "Latin America", country: "Mexico", vibes: ["Public", "Music", "Talk"], url: "https://tv.radiounam.unam.mx:8000/stream/1/" },
+        { id: 24, groups: ["intl"], title: "Radio Disney Argentina", region: "Latin America", country: "Argentina", vibes: ["Music"], url: "https://playerservices.streamtheworld.com/api/livestream-redirect/DISNEY_ARG.mp3" },
+        { id: 25, groups: ["intl"], title: "W Radio Colombia", region: "Latin America", country: "Colombia", vibes: ["News", "Talk"], url: "https://playerservices.streamtheworld.com/api/livestream-redirect/WRADIOAAC.aac" },
+        { id: 26, groups: ["intl"], title: "Caracol Radio Colombia", region: "Latin America", country: "Colombia", vibes: ["News", "Talk"], url: "https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIOAAC.aac" },
+        { id: 27, groups: ["intl"], title: "RPP Noticias Peru", region: "Latin America", country: "Peru", vibes: ["News", "Talk"], url: "https://playerservices.streamtheworld.com/api/livestream-redirect/RPP_NOTICIASAAC.aac" },
+        { id: 28, groups: ["intl"], title: "Radio Cooperativa Chile", region: "Latin America", country: "Chile", vibes: ["News", "Talk"], url: "https://stream.zeno.fm/cooperativa" },
 
         { id: 5, groups: ["intl"], title: "BBC Radio 2", region: "Europe", country: "UK", vibes: ["Music", "Talk"], url: "https://as-hls-ww-live.akamaized.net/pool_74208725/live/ww/bbc_radio_two/bbc_radio_two.isml/bbc_radio_two-audio=96000.norewind.m3u8" },
         { id: 6, groups: ["intl"], title: "BBC Radio 4", region: "Europe", country: "UK", vibes: ["Talk", "Public"], url: "https://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=96000.norewind.m3u8" },
@@ -576,7 +580,16 @@
       var selectedRegion = "All";
       var currentId = 0;
       var voiceBoost = false;
+      var warmthDb = 2;
       var hls = null;
+
+      // Web Audio EQ nodes (Voice Clarity presence peak + Café Warmth low-shelf)
+      var audioCtx = null;
+      var audioSource = null;
+      var warmthFilter = null;
+      var voiceFilter = null;
+      var eqGraphReady = false;
+      var eqBypassedByCors = false;
 
       var audio = document.getElementById("radioAudio");
       var favRadioListEl = document.getElementById("favRadioList");
@@ -606,6 +619,53 @@
       var ytFrame = document.getElementById("ytFrame");
 
       audio.volume = 0.85;
+
+      function ensureEqGraph() {
+        if (eqGraphReady) return true;
+        if (eqBypassedByCors) return false;
+        try {
+          var Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return false;
+          audioCtx = audioCtx || new Ctx();
+          if (!audioSource) {
+            audioSource = audioCtx.createMediaElementSource(audio);
+            warmthFilter = audioCtx.createBiquadFilter();
+            warmthFilter.type = "lowshelf";
+            warmthFilter.frequency.value = 180;
+            warmthFilter.gain.value = warmthDb;
+
+            voiceFilter = audioCtx.createBiquadFilter();
+            voiceFilter.type = "peaking";
+            voiceFilter.frequency.value = 2800;
+            voiceFilter.Q.value = 1.2;
+            voiceFilter.gain.value = voiceBoost ? 5 : 0;
+
+            audioSource.connect(warmthFilter);
+            warmthFilter.connect(voiceFilter);
+            voiceFilter.connect(audioCtx.destination);
+          }
+          eqGraphReady = true;
+          return true;
+        } catch (err) {
+          eqBypassedByCors = true;
+          return false;
+        }
+      }
+
+      function applyAudioEq() {
+        if (!ensureEqGraph()) return false;
+        if (audioCtx && audioCtx.state === "suspended") {
+          audioCtx.resume().catch(function () {});
+        }
+        var now = audioCtx.currentTime;
+        if (warmthFilter) {
+          warmthFilter.gain.setTargetAtTime(warmthDb, now, 0.03);
+        }
+        if (voiceFilter) {
+          voiceFilter.gain.setTargetAtTime(voiceBoost ? 5 : 0, now, 0.03);
+        }
+        return true;
+      }
 
       function bindCollapse(headerEl, bodyEl, labelEl, initialOpen, openLabel, closedLabel) {
         var openText = openLabel || "Collapse ▴";
@@ -786,9 +846,7 @@
         if (!list.length) {
           var empty = document.createElement("div");
           empty.className = "status";
-          empty.textContent = selectedRegion === "Latin America"
-            ? "No Latin America streams in catalog yet — add a direct stream URL or tap Reset."
-            : "No stations match — tap Reset.";
+          empty.textContent = "No stations match — tap Reset.";
           intlListEl.appendChild(empty);
           return;
         }
@@ -847,6 +905,7 @@
 
       function startPlayback() {
         stopYouTubePlayback();
+        applyAudioEq();
 
         var st = getStationById(currentId);
         if (hls) {
@@ -884,6 +943,7 @@
 
       audio.addEventListener("playing", function () {
         var st = getStationById(currentId);
+        applyAudioEq();
         vinylDisc.classList.add("spinning");
         nowFeeding.textContent = "Live " + st.vibes.join(" / ") + " broadcast";
         statusText.textContent = "Playing — " + st.title;
@@ -959,7 +1019,10 @@
         voiceBoost = !voiceBoost;
         voiceBtn.classList.toggle("active", voiceBoost);
         voiceBadge.textContent = voiceBoost ? "Voice Clarity On" : "Voice Clarity Off";
-        statusText.textContent = voiceBoost ? "Voice Clarity Boost enabled." : "Voice Clarity Boost off.";
+        var applied = applyAudioEq();
+        statusText.textContent = voiceBoost
+          ? (applied ? "Voice Clarity Boost (+5 dB @ 2.8 kHz) active." : "Voice Clarity Boost on (stream restricts Web Audio EQ).")
+          : "Voice Clarity Boost off.";
       });
 
       volSlider.addEventListener("input", function () {
@@ -969,10 +1032,11 @@
       });
 
       warmthSlider.addEventListener("input", function () {
-        var db = Number(warmthSlider.value);
-        var formatted = (db >= 0 ? "+" : "") + db + " dB";
+        warmthDb = Number(warmthSlider.value);
+        var formatted = (warmthDb >= 0 ? "+" : "") + warmthDb + " dB";
         warmthVal.textContent = formatted;
         warmthBadge.textContent = "Warmth " + formatted;
+        applyAudioEq();
       });
 
       // YouTube Player, External Search, Auto-Title via oEmbed & Collapsible Favorites List
@@ -1095,9 +1159,7 @@
               syncFavList(normalizedUrl);
             }
           })
-          .catch(function () {
-            // Keep clean fallback title silently if oEmbed is unreachable
-          });
+          .catch(function () {});
       }
 
       function syncFavList(selectedUrl) {
