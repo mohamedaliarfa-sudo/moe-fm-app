@@ -417,7 +417,7 @@
       </div>
     </div>
 
-    <!-- Collapsible International Box (Caribbean integrated as a region, single All filter) -->
+    <!-- Collapsible International Box (Caribbean & Latin America included as regions) -->
     <div class="card">
       <div class="box-header collapsible" id="intlHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>International</h2>
@@ -436,6 +436,7 @@
         <div class="chip-row" id="regionChips">
           <button type="button" class="chip" data-region="North America">N. America</button>
           <button type="button" class="chip" data-region="Caribbean">Caribbean</button>
+          <button type="button" class="chip" data-region="Latin America">Latin America</button>
           <button type="button" class="chip" data-region="Europe">Europe</button>
           <button type="button" class="chip" data-region="North Africa & Middle East">MENA</button>
           <button type="button" class="chip" data-region="Russia">Russia</button>
@@ -536,6 +537,8 @@
 
   <script>
     (function () {
+      // Add verified direct Latin America stream URLs (.m3u8, .mp3, or .aac) here:
+      // { id: 23, groups: ["intl"], title: "Station Name", region: "Latin America", country: "Country", vibes: ["Music", "Talk"], url: "https://..." }
       var catalog = [
         { id: 0, groups: ["local", "intl"], title: "CBC Radio One (Ottawa)", region: "North America", country: "Canada", vibes: ["Public", "Talk"], url: "https://cbcradiolive.akamaized.net/hls/live/2041037/ES_R1ETT/master.m3u8" },
         { id: 1, groups: ["local", "intl"], title: "ICI Radio-Canada Première (Ottawa-Gatineau)", region: "North America", country: "Canada", vibes: ["Public", "Talk"], url: "https://rcavliveaudio.akamaized.net/hls/live/2006652/P-2OOTT0_OTT/master.m3u8" },
@@ -783,7 +786,9 @@
         if (!list.length) {
           var empty = document.createElement("div");
           empty.className = "status";
-          empty.textContent = "No stations match — tap Reset.";
+          empty.textContent = selectedRegion === "Latin America"
+            ? "No Latin America streams in catalog yet — add a direct stream URL or tap Reset."
+            : "No stations match — tap Reset.";
           intlListEl.appendChild(empty);
           return;
         }
