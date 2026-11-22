@@ -124,7 +124,7 @@
     .station-meta { color: var(--muted); font-size: 0.84rem; margin: 0 0 4px; }
     .now-feeding { color: #ffbe88; font-size: 0.8rem; margin: 0; }
     label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px; }
-    select, input[type="text"] {
+    input[type="text"] {
       width: 100%;
       background-color: var(--card-2);
       color: var(--text);
@@ -136,9 +136,17 @@
       appearance: none;
       -webkit-appearance: none;
     }
-    select option {
-      background-color: #1d1611;
-      color: #f6efe8;
+
+    .fav-radio-block {
+      margin-bottom: 12px;
+    }
+    .fav-radio-label {
+      display: block;
+      font-size: 0.78rem;
+      color: #ffbe88;
+      font-weight: 600;
+      margin-bottom: 4px;
+      padding-left: 2px;
     }
 
     .section-body {
@@ -292,6 +300,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      margin-top: 8px;
       margin-bottom: 0;
     }
 
@@ -366,10 +375,10 @@
         </div>
       </div>
 
-      <label for="favRadioSelect">Favorite Radio Stations</label>
-      <select id="favRadioSelect">
-        <option value="">No favorite stations yet — star one below</option>
-      </select>
+      <div class="fav-radio-block">
+        <span class="fav-radio-label" id="favRadioHeading">Favorite Radio Stations</span>
+        <div class="seamless-list" id="favRadioList"></div>
+      </div>
 
       <div class="controls">
         <button class="primary" id="playBtn" type="button">Play</button>
@@ -474,15 +483,13 @@
           </iframe>
         </div>
 
-        <!-- Slim, box-free collapsible Saved Favorites row -->
+        <!-- Slim, box-free collapsible Saved Favorites list -->
         <div class="sub-toggle" id="ytFavToggle" role="button" tabindex="0" aria-expanded="false">
           <span id="ytFavToggleText">Saved Favorites (0)</span>
           <span class="sub-toggle-caret" id="ytFavToggleCaret">▾</span>
         </div>
         <div class="sub-collapse-body" id="ytFavBody">
-          <select id="favSelect">
-            <option value="">No saved favorites yet</option>
-          </select>
+          <div class="seamless-list" id="favList"></div>
           <div class="fav-actions">
             <button type="button" id="favPlayBtn">Play Favorite</button>
             <button type="button" id="favRemoveBtn">Remove</button>
@@ -491,7 +498,7 @@
       </div>
     </div>
 
-    <!-- Collapsible Spotify Box with box-free collapsible Saved Playlists -->
+    <!-- Collapsible Spotify Box with box-free collapsible Saved Playlists list -->
     <div class="card">
       <div class="box-header collapsible" id="spCardHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>Spotify</h2>
@@ -514,9 +521,7 @@
             <button class="primary" type="button" id="spSaveBtn">★ Save Playlist</button>
             <button type="button" id="spNewBtn">New Playlist</button>
           </div>
-          <select id="spSelect">
-            <option value="">No saved playlists yet</option>
-          </select>
+          <div class="seamless-list" id="spList"></div>
           <div class="fav-actions">
             <button type="button" id="spOpenBtn">Open Playlist</button>
             <button type="button" id="spRemoveBtn">Remove</button>
@@ -571,7 +576,8 @@
       var hls = null;
 
       var audio = document.getElementById("radioAudio");
-      var favRadioSelect = document.getElementById("favRadioSelect");
+      var favRadioListEl = document.getElementById("favRadioList");
+      var favRadioHeading = document.getElementById("favRadioHeading");
       var radioStarBtn = document.getElementById("radioStarBtn");
       var localListEl = document.getElementById("localList");
       var intlListEl = document.getElementById("intlList");
@@ -680,31 +686,37 @@
         try { localStorage.setItem(FAV_RADIO_KEY, JSON.stringify(arr)); } catch (e) {}
       }
 
-      function syncFavRadioSelect() {
+      function syncFavRadioList() {
         var favIds = loadFavRadios();
         var isStarred = favIds.indexOf(currentId) !== -1;
         radioStarBtn.classList.toggle("starred", isStarred);
+        favRadioHeading.textContent = favIds.length
+          ? "Favorite Radio Stations (" + favIds.length + ")"
+          : "Favorite Radio Stations";
 
-        favRadioSelect.innerHTML = "";
+        favRadioListEl.innerHTML = "";
         if (!favIds.length) {
-          var opt = document.createElement("option");
-          opt.value = "";
-          opt.textContent = "No favorite stations yet — star one below";
-          favRadioSelect.appendChild(opt);
+          var empty = document.createElement("div");
+          empty.className = "status";
+          empty.style.marginTop = "2px";
+          empty.textContent = "No favorite stations yet — tap ★ Fav Station to pin one here.";
+          favRadioListEl.appendChild(empty);
           return;
         }
 
         favIds.forEach(function (id) {
           var st = getStationById(id);
-          var opt = document.createElement("option");
-          opt.value = String(st.id);
-          opt.textContent = st.title;
-          favRadioSelect.appendChild(opt);
+          var row = document.createElement("button");
+          row.type = "button";
+          row.className = "seamless-row" + (st.id === currentId ? " selected" : "");
+          row.setAttribute("data-fav-radio-id", String(st.id));
+          row.innerHTML = "<span>" + st.title + "</span><span class=\"row-sub\">" + st.country + "</span>";
+          row.addEventListener("click", function () {
+            var defaultSection = st.groups.indexOf("local") !== -1 ? "local" : "intl";
+            selectStation(st.id, true, defaultSection);
+          });
+          favRadioListEl.appendChild(row);
         });
-
-        if (isStarred) {
-          favRadioSelect.value = String(currentId);
-        }
       }
 
       radioStarBtn.addEventListener("click", function () {
@@ -719,14 +731,7 @@
           saveFavRadios(favIds);
           statusText.textContent = "Added " + getStationById(currentId).title + " to Favorite Radio Stations.";
         }
-        syncFavRadioSelect();
-      });
-
-      favRadioSelect.addEventListener("change", function () {
-        if (!favRadioSelect.value) return;
-        var st = getStationById(Number(favRadioSelect.value));
-        var defaultSection = st.groups.indexOf("local") !== -1 ? "local" : "intl";
-        selectStation(st.id, true, defaultSection);
+        syncFavRadioList();
       });
 
       function stopYouTubePlayback() {
@@ -816,7 +821,7 @@
         stationTitle.textContent = st.title;
         stationMeta.textContent = st.region + " • " + st.country + " • " + st.vibes.join(" / ");
         nowFeeding.textContent = "Stream Info: Ready";
-        syncFavRadioSelect();
+        syncFavRadioList();
         refreshStationLists();
         if (section) focusRadioSection(section);
         if (autoplay) startPlayback();
@@ -891,7 +896,7 @@
 
       document.addEventListener("click", function (e) {
         var row = e.target.closest(".seamless-row");
-        if (row) {
+        if (row && row.closest("#localList, #intlList")) {
           var rowId = Number(row.getAttribute("data-id"));
           var section = row.closest("#intlList") ? "intl" : "local";
           selectStation(rowId, true, section);
@@ -965,10 +970,11 @@
         warmthBadge.textContent = "Warmth " + formatted;
       });
 
-      // YouTube Player, External Search, Auto-Title via oEmbed & Collapsible Favorites
+      // YouTube Player, External Search, Auto-Title via oEmbed & Collapsible Favorites List
       var FAV_LIST_KEY = "moefm_yt_favorites_v5";
       var artistMix = true;
       var activePlayToken = 0;
+      var selectedFavUrl = "";
       var ytTitle = document.getElementById("ytTitle");
       var ytUrl = document.getElementById("ytUrl");
       var ytPlayBtn = document.getElementById("ytPlayBtn");
@@ -978,7 +984,7 @@
       var ytNewBtn = document.getElementById("ytNewBtn");
       var ytStatus = document.getElementById("ytStatus");
       var ytFavToggleText = document.getElementById("ytFavToggleText");
-      var favSelect = document.getElementById("favSelect");
+      var favListEl = document.getElementById("favList");
       var favPlayBtn = document.getElementById("favPlayBtn");
       var favRemoveBtn = document.getElementById("favRemoveBtn");
 
@@ -1081,7 +1087,7 @@
             }
             if (changed) {
               saveFavs(favs);
-              syncFavDropdown(normalizedUrl);
+              syncFavList(normalizedUrl);
             }
           })
           .catch(function () {
@@ -1089,7 +1095,7 @@
           });
       }
 
-      function syncFavDropdown(selectedUrl) {
+      function syncFavList(selectedUrl) {
         var favs = loadFavs();
         ytFavToggleText.textContent = "Saved Favorites (" + favs.length + ")";
 
@@ -1100,30 +1106,43 @@
         });
         ytStarBtn.classList.toggle("starred", Boolean(isFav));
 
-        favSelect.innerHTML = "";
+        if (selectedUrl !== undefined) {
+          selectedFavUrl = selectedUrl || "";
+        } else if (curUrl && favs.some(function (item) { return normalizeYouTubeUrl(item.url) === curUrl; })) {
+          selectedFavUrl = curUrl;
+        } else if (selectedFavUrl && !favs.some(function (item) { return item.url === selectedFavUrl; })) {
+          selectedFavUrl = favs.length ? favs[0].url : "";
+        }
+
+        favListEl.innerHTML = "";
         if (!favs.length) {
-          var emptyOpt = document.createElement("option");
-          emptyOpt.value = "";
-          emptyOpt.textContent = "No saved favorites yet";
-          favSelect.appendChild(emptyOpt);
+          selectedFavUrl = "";
+          var empty = document.createElement("div");
+          empty.className = "status";
+          empty.textContent = "No saved favorites yet.";
+          favListEl.appendChild(empty);
           return;
         }
 
-        favs.forEach(function (item) {
-          var opt = document.createElement("option");
-          opt.value = item.url;
-          opt.textContent = item.title;
-          favSelect.appendChild(opt);
-        });
-
-        if (isFav && curUrl) {
-          for (var i = 0; i < favs.length; i++) {
-            if (normalizeYouTubeUrl(favs[i].url) === curUrl) {
-              favSelect.value = favs[i].url;
-              break;
-            }
-          }
+        if (!selectedFavUrl) {
+          selectedFavUrl = favs[0].url;
         }
+
+        favs.forEach(function (item) {
+          var row = document.createElement("button");
+          row.type = "button";
+          row.className = "seamless-row" + (item.url === selectedFavUrl ? " selected" : "");
+          row.setAttribute("data-fav-url", item.url);
+          row.innerHTML = "<span>" + item.title + "</span><span class=\"row-sub\">Play</span>";
+          row.addEventListener("click", function () {
+            selectedFavUrl = item.url;
+            ytUrl.value = item.url;
+            ytTitle.value = item.title || "";
+            syncFavList(item.url);
+            playYouTube(true);
+          });
+          favListEl.appendChild(row);
+        });
       }
 
       function searchYouTubeExternal() {
@@ -1189,7 +1208,7 @@
         ytStatus.textContent = activeList
           ? "Playing Mix: " + friendlyTitle + (userTypedCustom ? "" : " (fetching song title...)")
           : "Playing: " + friendlyTitle + (userTypedCustom ? "" : " (fetching song title...)");
-        syncFavDropdown(normalizedUrl);
+        syncFavList(normalizedUrl);
 
         activePlayToken += 1;
         if (!userTypedCustom) {
@@ -1234,7 +1253,7 @@
           favs.splice(existingIdx, 1);
           saveFavs(favs);
           ytStatus.textContent = "Removed \"" + title + "\" from Saved Favorites (" + favs.length + " saved).";
-          syncFavDropdown("");
+          syncFavList("");
         } else {
           favs.unshift({ title: title, url: url });
           if (!saveFavs(favs)) {
@@ -1242,8 +1261,7 @@
             return;
           }
           ytStatus.textContent = "Saved \"" + title + "\" (" + favs.length + " in Saved Favorites).";
-          syncFavDropdown(url);
-          favSelect.value = url;
+          syncFavList(url);
         }
       });
 
@@ -1253,7 +1271,6 @@
         ytUrl.value = "";
         ytStarBtn.classList.remove("starred");
         ytStatus.textContent = "Ready for next song — paste a YouTube URL and tap Play Link.";
-        favSelect.value = "";
       });
 
       function triggerFavoritePlay() {
@@ -1262,43 +1279,40 @@
           ytStatus.textContent = "No saved favorites yet.";
           return;
         }
-        var chosenUrl = favSelect.value || (favs[0] && favs[0].url) || "";
-        if (!chosenUrl) {
-          ytStatus.textContent = "Select a song from Saved Favorites first.";
-          return;
-        }
-        var match = favs.find(function (item) { return item.url === chosenUrl; }) || favs[0];
+        var match = favs.find(function (item) { return item.url === selectedFavUrl; }) || favs[0];
+        selectedFavUrl = match.url;
         ytUrl.value = match.url;
         ytTitle.value = match.title || "";
-        syncFavDropdown(match.url);
-        favSelect.value = match.url;
+        syncFavList(match.url);
         playYouTube(true);
       }
 
       favPlayBtn.addEventListener("click", triggerFavoritePlay);
 
       favRemoveBtn.addEventListener("click", function () {
-        var chosenUrl = favSelect.value;
-        if (!chosenUrl) return;
-        var updated = loadFavs().filter(function (item) { return item.url !== chosenUrl; });
+        var favs = loadFavs();
+        if (!favs.length) return;
+        var targetUrl = selectedFavUrl || favs[0].url;
+        var updated = favs.filter(function (item) { return item.url !== targetUrl; });
         saveFavs(updated);
         ytStatus.textContent = "Removed favorite (" + updated.length + " remaining).";
-        syncFavDropdown(ytUrl.value.trim());
+        syncFavList("");
       });
 
       ytUrl.addEventListener("input", function () {
-        syncFavDropdown();
+        syncFavList();
       });
-      syncFavDropdown("");
-      syncFavRadioSelect();
+      syncFavList("");
+      syncFavRadioList();
 
-      // Self-serve Spotify Saved Playlists (collapsible, box-free)
+      // Self-serve Spotify Saved Playlists (collapsible, box-free list)
       var SP_LIST_KEY = "moefm_spotify_playlists_v1";
+      var selectedSpUri = "";
       var spName = document.getElementById("spName");
       var spUrl = document.getElementById("spUrl");
       var spSaveBtn = document.getElementById("spSaveBtn");
       var spNewBtn = document.getElementById("spNewBtn");
-      var spSelect = document.getElementById("spSelect");
+      var spListEl = document.getElementById("spList");
       var spOpenBtn = document.getElementById("spOpenBtn");
       var spRemoveBtn = document.getElementById("spRemoveBtn");
       var spStatus = document.getElementById("spStatus");
@@ -1348,29 +1362,43 @@
         return null;
       }
 
-      function syncSpDropdown(selectedAppUri) {
+      function syncSpList(selectedAppUri) {
         var list = loadSpPlaylists();
         spToggleText.textContent = "Saved Playlists (" + list.length + ")";
 
-        spSelect.innerHTML = "";
+        if (selectedAppUri !== undefined) {
+          selectedSpUri = selectedAppUri || "";
+        } else if (selectedSpUri && !list.some(function (item) { return item.appUri === selectedSpUri; })) {
+          selectedSpUri = list.length ? list[0].appUri : "";
+        }
+
+        spListEl.innerHTML = "";
         if (!list.length) {
-          var opt = document.createElement("option");
-          opt.value = "";
-          opt.textContent = "No saved playlists yet";
-          spSelect.appendChild(opt);
+          selectedSpUri = "";
+          var empty = document.createElement("div");
+          empty.className = "status";
+          empty.textContent = "No saved playlists yet.";
+          spListEl.appendChild(empty);
           return;
         }
 
-        list.forEach(function (item) {
-          var opt = document.createElement("option");
-          opt.value = item.appUri;
-          opt.textContent = item.name;
-          spSelect.appendChild(opt);
-        });
-
-        if (selectedAppUri) {
-          spSelect.value = selectedAppUri;
+        if (!selectedSpUri) {
+          selectedSpUri = list[0].appUri;
         }
+
+        list.forEach(function (item) {
+          var row = document.createElement("button");
+          row.type = "button";
+          row.className = "seamless-row" + (item.appUri === selectedSpUri ? " selected" : "");
+          row.setAttribute("data-sp-uri", item.appUri);
+          row.innerHTML = "<span>" + item.name + "</span><span class=\"row-sub\">Spotify</span>";
+          row.addEventListener("click", function () {
+            selectedSpUri = item.appUri;
+            syncSpList(item.appUri);
+            spStatus.textContent = "Selected \"" + item.name + "\" — tap Open Playlist.";
+          });
+          spListEl.appendChild(row);
+        });
       }
 
       spSaveBtn.addEventListener("click", function () {
@@ -1398,7 +1426,7 @@
           spStatus.textContent = "Could not save playlist on this device.";
           return;
         }
-        syncSpDropdown(parsed.appUri);
+        syncSpList(parsed.appUri);
         spStatus.textContent = "Saved \"" + label + "\" (" + list.length + " saved).";
       });
 
@@ -1409,27 +1437,29 @@
       });
 
       spOpenBtn.addEventListener("click", function () {
-        var chosenUri = spSelect.value;
-        if (!chosenUri) {
-          spStatus.textContent = "Select a playlist from Saved Playlists first.";
+        var list = loadSpPlaylists();
+        if (!list.length) {
+          spStatus.textContent = "No saved playlists yet.";
           return;
         }
-        var list = loadSpPlaylists();
-        var match = list.find(function (item) { return item.appUri === chosenUri; });
-        spStatus.textContent = "Opening " + (match ? match.name : "playlist") + " in Spotify...";
-        window.location.href = chosenUri;
+        var match = list.find(function (item) { return item.appUri === selectedSpUri; }) || list[0];
+        selectedSpUri = match.appUri;
+        syncSpList(match.appUri);
+        spStatus.textContent = "Opening " + match.name + " in Spotify...";
+        window.location.href = match.appUri;
       });
 
       spRemoveBtn.addEventListener("click", function () {
-        var chosenUri = spSelect.value;
-        if (!chosenUri) return;
-        var updated = loadSpPlaylists().filter(function (item) { return item.appUri !== chosenUri; });
+        var list = loadSpPlaylists();
+        if (!list.length) return;
+        var targetUri = selectedSpUri || list[0].appUri;
+        var updated = list.filter(function (item) { return item.appUri !== targetUri; });
         saveSpPlaylists(updated);
-        syncSpDropdown("");
         spStatus.textContent = "Removed playlist (" + updated.length + " remaining).";
+        syncSpList("");
       });
 
-      syncSpDropdown("");
+      syncSpList("");
 
       // Header Welcome / Return Pill beside "Moe FM"
       var pill = document.getElementById("welcomePill");
