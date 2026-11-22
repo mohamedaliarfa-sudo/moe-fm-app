@@ -399,11 +399,11 @@
 
     <!-- Collapsible Local Radio Box -->
     <div class="card">
-      <div class="box-header collapsible" id="localHeader" role="button" tabindex="0" aria-expanded="true">
+      <div class="box-header collapsible" id="localHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>Local Radio</h2>
-        <span class="box-tag" id="localToggleLabel">Collapse ▴</span>
+        <span class="box-tag" id="localToggleLabel">Expand ▾</span>
       </div>
-      <div class="section-body open" id="localBody">
+      <div class="section-body" id="localBody">
         <div class="seamless-list" id="localList"></div>
       </div>
     </div>
@@ -445,12 +445,12 @@
 
     <!-- Collapsible YouTube Box -->
     <div class="card">
-      <div class="box-header collapsible" id="ytHeader" role="button" tabindex="0" aria-expanded="true">
+      <div class="box-header collapsible" id="ytHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>YouTube</h2>
-        <span class="box-tag" id="ytToggleLabel">Collapse ▴</span>
+        <span class="box-tag" id="ytToggleLabel">Expand ▾</span>
       </div>
 
-      <div class="section-body open" id="ytBody">
+      <div class="section-body" id="ytBody">
         <div class="custom-row">
           <input id="ytTitle" type="text" placeholder="Song title (auto-fills on Play Link, or type your own)" />
           <input id="ytUrl" type="text" placeholder="Paste YouTube URL (watch, youtu.be, shorts, or playlist)" />
@@ -625,7 +625,7 @@
         document.getElementById("localHeader"),
         document.getElementById("localBody"),
         document.getElementById("localToggleLabel"),
-        true
+        false
       );
       var setIntlOpen = bindCollapse(
         document.getElementById("intlHeader"),
@@ -637,7 +637,7 @@
         document.getElementById("ytHeader"),
         document.getElementById("ytBody"),
         document.getElementById("ytToggleLabel"),
-        true
+        false
       );
       bindCollapse(
         document.getElementById("ytFavToggle"),
