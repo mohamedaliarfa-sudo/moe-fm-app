@@ -283,7 +283,7 @@
     }
     .sub-collapse-body {
       display: none;
-      margin-top: 8px;
+      margin-top: 6px;
     }
     .sub-collapse-body.open {
       display: block;
@@ -408,7 +408,7 @@
       </div>
     </div>
 
-    <!-- Collapsible International Box (Caribbean integrated as a region) -->
+    <!-- Collapsible International Box (Caribbean integrated as a region, single All filter) -->
     <div class="card">
       <div class="box-header collapsible" id="intlHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>International</h2>
@@ -425,7 +425,6 @@
         </div>
 
         <div class="chip-row" id="regionChips">
-          <button type="button" class="chip active" data-region="All">All Regions</button>
           <button type="button" class="chip" data-region="North America">N. America</button>
           <button type="button" class="chip" data-region="Caribbean">Caribbean</button>
           <button type="button" class="chip" data-region="Europe">Europe</button>
@@ -492,36 +491,38 @@
       </div>
     </div>
 
-    <!-- Spotify Box with box-free collapsible Saved Playlists -->
+    <!-- Collapsible Spotify Box with box-free collapsible Saved Playlists -->
     <div class="card">
-      <div class="box-header">
+      <div class="box-header collapsible" id="spCardHeader" role="button" tabindex="0" aria-expanded="false">
         <h2>Spotify</h2>
-        <span class="box-tag">Quick Launch</span>
+        <span class="box-tag" id="spCardToggleLabel">Expand ▾</span>
       </div>
-      <div class="controls" style="margin-bottom: 0;">
-        <a class="btn-link" href="spotify://">Launch Spotify App</a>
-        <a class="btn-link" href="https://open.spotify.com" target="_blank" rel="noopener noreferrer">Open Spotify Web</a>
-      </div>
+      <div class="section-body" id="spCardBody">
+        <div class="controls" style="margin-bottom: 0;">
+          <a class="btn-link" href="spotify://">Launch Spotify App</a>
+          <a class="btn-link" href="https://open.spotify.com" target="_blank" rel="noopener noreferrer">Open Spotify Web</a>
+        </div>
 
-      <div class="sub-toggle" id="spToggle" role="button" tabindex="0" aria-expanded="false">
-        <span id="spToggleText">Saved Playlists (0)</span>
-        <span class="sub-toggle-caret" id="spToggleCaret">▾</span>
-      </div>
-      <div class="sub-collapse-body" id="spBody">
-        <input id="spName" type="text" placeholder="Playlist name (e.g. Café Jazz)" />
-        <input id="spUrl" type="text" placeholder="Paste Spotify playlist link or URI" />
-        <div class="controls" style="margin-bottom: 8px;">
-          <button class="primary" type="button" id="spSaveBtn">★ Save Playlist</button>
-          <button type="button" id="spNewBtn">New Playlist</button>
+        <div class="sub-toggle" id="spToggle" role="button" tabindex="0" aria-expanded="false">
+          <span id="spToggleText">Saved Playlists (0)</span>
+          <span class="sub-toggle-caret" id="spToggleCaret">▾</span>
         </div>
-        <select id="spSelect">
-          <option value="">No saved playlists yet</option>
-        </select>
-        <div class="fav-actions">
-          <button type="button" id="spOpenBtn">Open Playlist</button>
-          <button type="button" id="spRemoveBtn">Remove</button>
+        <div class="sub-collapse-body" id="spBody">
+          <input id="spName" type="text" placeholder="Playlist name (e.g. Café Jazz)" />
+          <input id="spUrl" type="text" placeholder="Paste Spotify playlist link or URI" />
+          <div class="controls" style="margin-bottom: 8px;">
+            <button class="primary" type="button" id="spSaveBtn">★ Save Playlist</button>
+            <button type="button" id="spNewBtn">New Playlist</button>
+          </div>
+          <select id="spSelect">
+            <option value="">No saved playlists yet</option>
+          </select>
+          <div class="fav-actions">
+            <button type="button" id="spOpenBtn">Open Playlist</button>
+            <button type="button" id="spRemoveBtn">Remove</button>
+          </div>
+          <div class="status" id="spStatus">Paste any Spotify playlist link, give it a name, and tap ★ Save Playlist.</div>
         </div>
-        <div class="status" id="spStatus">Paste any Spotify playlist link, give it a name, and tap ★ Save Playlist.</div>
       </div>
     </div>
   </div>
@@ -645,6 +646,12 @@
         false,
         "▴",
         "▾"
+      );
+      bindCollapse(
+        document.getElementById("spCardHeader"),
+        document.getElementById("spCardBody"),
+        document.getElementById("spCardToggleLabel"),
+        false
       );
       bindCollapse(
         document.getElementById("spToggle"),
@@ -786,6 +793,17 @@
         }
       }
 
+      function syncIntlChipStates() {
+        document.querySelectorAll("#vibeChips .chip").forEach(function (c) {
+          var v = c.getAttribute("data-vibe");
+          c.classList.toggle("active", selectedRegion === "All" && v === selectedVibe);
+        });
+        document.querySelectorAll("#regionChips .chip").forEach(function (c) {
+          var r = c.getAttribute("data-region");
+          c.classList.toggle("active", r === selectedRegion);
+        });
+      }
+
       function refreshStationLists() {
         renderLocalRows();
         renderIntlRows();
@@ -882,20 +900,23 @@
 
       document.querySelectorAll("#vibeChips .chip").forEach(function (chip) {
         chip.addEventListener("click", function () {
-          selectedVibe = chip.getAttribute("data-vibe");
-          document.querySelectorAll("#vibeChips .chip").forEach(function (c) {
-            c.classList.toggle("active", c === chip);
-          });
+          var v = chip.getAttribute("data-vibe");
+          if (v === "All") {
+            selectedVibe = "All";
+            selectedRegion = "All";
+          } else {
+            selectedVibe = v;
+          }
+          syncIntlChipStates();
           renderIntlRows();
         });
       });
 
       document.querySelectorAll("#regionChips .chip").forEach(function (chip) {
         chip.addEventListener("click", function () {
-          selectedRegion = chip.getAttribute("data-region");
-          document.querySelectorAll("#regionChips .chip").forEach(function (c) {
-            c.classList.toggle("active", c === chip);
-          });
+          var r = chip.getAttribute("data-region");
+          selectedRegion = (selectedRegion === r) ? "All" : r;
+          syncIntlChipStates();
           renderIntlRows();
         });
       });
@@ -917,12 +938,7 @@
         selectedVibe = "All";
         selectedRegion = "All";
         filterInput.value = "";
-        document.querySelectorAll("#vibeChips .chip").forEach(function (c) {
-          c.classList.toggle("active", c.getAttribute("data-vibe") === "All");
-        });
-        document.querySelectorAll("#regionChips .chip").forEach(function (c) {
-          c.classList.toggle("active", c.getAttribute("data-region") === "All");
-        });
+        syncIntlChipStates();
         renderIntlRows();
       });
 
@@ -1055,7 +1071,6 @@
               ? "Playing Mix: " + displayTitle + " — tap ★ Favorite to save."
               : "Playing: " + displayTitle + " — tap ★ Favorite to save.";
 
-            // If already favorited with a placeholder ID title, upgrade its stored title too
             var favs = loadFavs();
             var changed = false;
             for (var i = 0; i < favs.length; i++) {
@@ -1122,7 +1137,7 @@
         ytStatus.textContent = "Opened YouTube search for \"" + query + "\".";
       }
 
-      function playYouTube() {
+      function playYouTube(forceReload) {
         var rawUrl = ytUrl.value.trim();
         if (!rawUrl) {
           ytStatus.textContent = "Paste a YouTube link or choose a song from Saved Favorites.";
@@ -1130,6 +1145,12 @@
         }
         var yt = parseYouTube(rawUrl);
         if (!yt.vid && !yt.list) {
+          if (/^https?:\/\//i.test(rawUrl)) {
+            stopPlayback();
+            window.open(rawUrl, "_blank", "noopener,noreferrer");
+            ytStatus.textContent = "Opened link: " + rawUrl;
+            return;
+          }
           ytStatus.textContent = "Paste a valid YouTube video or playlist link.";
           return;
         }
@@ -1145,16 +1166,29 @@
 
         stopPlayback();
 
+        if (forceReload) {
+          ytFrame.src = "about:blank";
+        }
+
         var activeList = yt.list || (artistMix && yt.vid ? "RD" + yt.vid : null);
         var embedUrl = yt.vid
           ? "https://www.youtube-nocookie.com/embed/" + yt.vid + "?autoplay=1&playsinline=1&rel=0" + (activeList ? "&list=" + activeList : "")
           : "https://www.youtube-nocookie.com/embed/videoseries?autoplay=1&playsinline=1&list=" + activeList;
-        ytFrame.src = embedUrl;
-        ytFrameWrap.classList.add("visible");
+
+        function applyEmbed() {
+          ytFrame.src = embedUrl;
+          ytFrameWrap.classList.add("visible");
+        }
+
+        if (forceReload) {
+          setTimeout(applyEmbed, 30);
+        } else {
+          applyEmbed();
+        }
 
         ytStatus.textContent = activeList
-          ? "Playing Mix: " + friendlyTitle + (userTypedCustom ? " — tap ★ Favorite to save." : " (fetching song title...)")
-          : "Playing: " + friendlyTitle + (userTypedCustom ? " — tap ★ Favorite to save." : " (fetching song title...)");
+          ? "Playing Mix: " + friendlyTitle + (userTypedCustom ? "" : " (fetching song title...)")
+          : "Playing: " + friendlyTitle + (userTypedCustom ? "" : " (fetching song title...)");
         syncFavDropdown(normalizedUrl);
 
         activePlayToken += 1;
@@ -1163,14 +1197,14 @@
         }
       }
 
-      ytPlayBtn.addEventListener("click", playYouTube);
+      ytPlayBtn.addEventListener("click", function () { playYouTube(false); });
       ytSearchBtn.addEventListener("click", searchYouTubeExternal);
 
       ytMixBtn.addEventListener("click", function () {
         artistMix = !artistMix;
         ytMixBtn.classList.toggle("active", artistMix);
         ytMixBtn.textContent = artistMix ? "Artist Mix: On" : "Artist Mix: Off";
-        if (ytUrl.value.trim()) playYouTube();
+        if (ytUrl.value.trim()) playYouTube(true);
       });
 
       ytStarBtn.addEventListener("click", function () {
@@ -1222,19 +1256,26 @@
         favSelect.value = "";
       });
 
-      favPlayBtn.addEventListener("click", function () {
-        var chosenUrl = favSelect.value;
+      function triggerFavoritePlay() {
+        var favs = loadFavs();
+        if (!favs.length) {
+          ytStatus.textContent = "No saved favorites yet.";
+          return;
+        }
+        var chosenUrl = favSelect.value || (favs[0] && favs[0].url) || "";
         if (!chosenUrl) {
           ytStatus.textContent = "Select a song from Saved Favorites first.";
           return;
         }
-        var favs = loadFavs();
-        var match = favs.find(function (item) { return item.url === chosenUrl; });
-        ytUrl.value = chosenUrl;
-        ytTitle.value = match ? match.title : "";
-        syncFavDropdown(chosenUrl);
-        playYouTube();
-      });
+        var match = favs.find(function (item) { return item.url === chosenUrl; }) || favs[0];
+        ytUrl.value = match.url;
+        ytTitle.value = match.title || "";
+        syncFavDropdown(match.url);
+        favSelect.value = match.url;
+        playYouTube(true);
+      }
+
+      favPlayBtn.addEventListener("click", triggerFavoritePlay);
 
       favRemoveBtn.addEventListener("click", function () {
         var chosenUrl = favSelect.value;
