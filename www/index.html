@@ -1297,4 +1297,582 @@
       });
 
       liveSearchBtn.addEventListener("click", function () {
-        document.querySelectorAll("#liveQuickChips .chip").forEach(
+        document.querySelectorAll("#liveQuickChips .chip").forEach(function (c) { c.classList.remove("active"); });
+        runLiveWorldSearch("general", liveSearchInput.value);
+      });
+
+      liveSearchInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          document.querySelectorAll("#liveQuickChips .chip").forEach(function (c) { c.classList.remove("active"); });
+          runLiveWorldSearch("general", liveSearchInput.value);
+        }
+      });
+
+      playBtn.addEventListener("click", startPlayback);
+      stopBtn.addEventListener("click", stopPlayback);
+
+      voiceBtn.addEventListener("click", function () {
+        voiceBoost = !voiceBoost;
+        voiceBtn.classList.toggle("active", voiceBoost);
+        voiceBadge.textContent = voiceBoost ? "Voice Clarity On" : "Voice Clarity Off";
+        var applied = applyAudioEq();
+        statusText.textContent = voiceBoost
+          ? (applied ? "Voice Clarity Boost (+5 dB @ 2.8 kHz) active." : "Voice Clarity Boost on (stream restricts Web Audio EQ).")
+          : "Voice Clarity Boost off.";
+      });
+
+      volSlider.addEventListener("input", function () {
+        var pct = Number(volSlider.value);
+        volVal.textContent = pct + "%";
+        audio.volume = pct / 100;
+      });
+
+      warmthSlider.addEventListener("input", function () {
+        warmthDb = Number(warmthSlider.value);
+        var formatted = (warmthDb >= 0 ? "+" : "") + warmthDb + " dB";
+        warmthVal.textContent = formatted;
+        warmthBadge.textContent = "Warmth " + formatted;
+        applyAudioEq();
+      });
+
+      // YouTube Player, External Search, Auto-Title via oEmbed & Collapsible Favorites List
+      var FAV_LIST_KEY = "moefm_yt_favorites_v5";
+      var artistMix = true;
+      var activePlayToken = 0;
+      var selectedFavUrl = "";
+      var ytTitle = document.getElementById("ytTitle");
+      var ytUrl = document.getElementById("ytUrl");
+      var ytPlayBtn = document.getElementById("ytPlayBtn");
+      var ytSearchBtn = document.getElementById("ytSearchBtn");
+      var ytMixBtn = document.getElementById("ytMixBtn");
+      var ytStarBtn = document.getElementById("ytStarBtn");
+      var ytNewBtn = document.getElementById("ytNewBtn");
+      var ytStatus = document.getElementById("ytStatus");
+      var ytFavToggleText = document.getElementById("ytFavToggleText");
+      var favListEl = document.getElementById("favList");
+      var favPlayBtn = document.getElementById("favPlayBtn");
+      var favRemoveBtn = document.getElementById("favRemoveBtn");
+
+      function loadFavs() {
+        try {
+          var arr = JSON.parse(localStorage.getItem(FAV_LIST_KEY) || "[]");
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveFavs(arr) {
+        try {
+          localStorage.setItem(FAV_LIST_KEY, JSON.stringify(arr));
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function parseYouTube(raw) {
+        if (!raw) return { vid: null, list: null };
+        var clean = raw.trim();
+        var listMatch = clean.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+        var list = listMatch ? listMatch[1] : null;
+        var patterns = [
+          /(?:youtube\.com\/watch\?v=|youtube\.com\/watch\?.*&v=)([a-zA-Z0-9_-]{11})/,
+          /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+          /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+          /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+          /youtube\.com\/live\/([a-zA-Z0-9_-]{11})/
+        ];
+        for (var i = 0; i < patterns.length; i++) {
+          var m = clean.match(patterns[i]);
+          if (m && m[1]) return { vid: m[1], list: list };
+        }
+        if (/^[a-zA-Z0-9_-]{11}$/.test(clean)) return { vid: clean, list: list };
+        return { vid: null, list: list };
+      }
+
+      function normalizeYouTubeUrl(raw) {
+        var clean = (raw || "").trim();
+        var parsed = parseYouTube(clean);
+        if (parsed.vid) {
+          return "https://youtu.be/" + parsed.vid + (parsed.list ? "?list=" + parsed.list : "");
+        }
+        return clean;
+      }
+
+      function isUrlLike(str) {
+        return /^https?:\/\//i.test((str || "").trim()) || /youtu\.be\/|youtube\.com\//i.test((str || "").trim());
+      }
+
+      function isFallbackTitle(str) {
+        var s = (str || "").trim();
+        return !s || isUrlLike(s) || /^YouTube (Track|Mix) \([a-zA-Z0-9_-]+\)$/.test(s) || s === "Saved YouTube Track";
+      }
+
+      function buildFriendlyTitle(rawTitle, url, parsed) {
+        var cleaned = (rawTitle || "").trim();
+        if (cleaned && !isUrlLike(cleaned)) return cleaned;
+        if (parsed && parsed.vid) return "YouTube Track (" + parsed.vid + ")";
+        if (parsed && parsed.list) return "YouTube Mix (" + parsed.list + ")";
+        return "Saved YouTube Track";
+      }
+
+      function fetchYouTubeTitle(parsed, token, normalizedUrl, fallbackTitle, activeList) {
+        var targetUrl = parsed.vid
+          ? "https://www.youtube.com/watch?v=" + parsed.vid
+          : normalizedUrl;
+        var endpoint = "https://www.youtube.com/oembed?url=" + encodeURIComponent(targetUrl) + "&format=json";
+
+        fetch(endpoint)
+          .then(function (res) {
+            if (!res.ok) throw new Error("oEmbed status " + res.status);
+            return res.json();
+          })
+          .then(function (data) {
+            if (token !== activePlayToken) return;
+            var fetched = data && data.title ? String(data.title).trim() : "";
+            if (!fetched) return;
+
+            if (isFallbackTitle(ytTitle.value)) {
+              ytTitle.value = fetched;
+            }
+
+            var displayTitle = ytTitle.value.trim() || fetched;
+            ytStatus.textContent = activeList
+              ? "Playing Mix: " + displayTitle + " — tap ★ Favorite to save."
+              : "Playing: " + displayTitle + " — tap ★ Favorite to save.";
+
+            var favs = loadFavs();
+            var changed = false;
+            for (var i = 0; i < favs.length; i++) {
+              if (normalizeYouTubeUrl(favs[i].url) === normalizedUrl && isFallbackTitle(favs[i].title)) {
+                favs[i].title = displayTitle;
+                changed = true;
+              }
+            }
+            if (changed) {
+              saveFavs(favs);
+              syncFavList(normalizedUrl);
+            }
+          })
+          .catch(function () {});
+      }
+
+      function syncFavList(selectedUrl) {
+        var favs = loadFavs();
+        ytFavToggleText.textContent = "Saved Favorites (" + favs.length + ")";
+
+        var rawCur = selectedUrl !== undefined ? selectedUrl : ytUrl.value.trim();
+        var curUrl = rawCur ? normalizeYouTubeUrl(rawCur) : "";
+        var isFav = curUrl && favs.some(function (item) {
+          return normalizeYouTubeUrl(item.url) === curUrl;
+        });
+        ytStarBtn.classList.toggle("starred", Boolean(isFav));
+
+        if (selectedUrl !== undefined) {
+          selectedFavUrl = selectedUrl || "";
+        } else if (curUrl && favs.some(function (item) { return normalizeYouTubeUrl(item.url) === curUrl; })) {
+          selectedFavUrl = curUrl;
+        } else if (selectedFavUrl && !favs.some(function (item) { return item.url === selectedFavUrl; })) {
+          selectedFavUrl = favs.length ? favs[0].url : "";
+        }
+
+        favListEl.innerHTML = "";
+        if (!favs.length) {
+          selectedFavUrl = "";
+          var empty = document.createElement("div");
+          empty.className = "status";
+          empty.textContent = "No saved favorites yet.";
+          favListEl.appendChild(empty);
+          return;
+        }
+
+        if (!selectedFavUrl) {
+          selectedFavUrl = favs[0].url;
+        }
+
+        favs.forEach(function (item) {
+          var row = document.createElement("button");
+          row.type = "button";
+          row.className = "seamless-row" + (item.url === selectedFavUrl ? " selected" : "");
+          row.setAttribute("data-fav-url", item.url);
+          row.innerHTML = "<span>" + escapeHtml(item.title) + "</span><span class=\"row-sub\">Play</span>";
+          row.addEventListener("click", function () {
+            selectedFavUrl = item.url;
+            ytUrl.value = item.url;
+            ytTitle.value = item.title || "";
+            syncFavList(item.url);
+            playYouTube(true);
+          });
+          favListEl.appendChild(row);
+        });
+      }
+
+      function searchYouTubeExternal() {
+        var query = ytTitle.value.trim();
+        if (!query) {
+          ytStatus.textContent = "Type a song or artist name first, then tap Search YouTube.";
+          return;
+        }
+        var url = "https://m.youtube.com/results?search_query=" + encodeURIComponent(query);
+        window.open(url, "_blank", "noopener,noreferrer");
+        ytStatus.textContent = "Opened YouTube search for \"" + query + "\".";
+      }
+
+      function playYouTube(forceReload) {
+        var rawUrl = ytUrl.value.trim();
+        if (!rawUrl) {
+          ytStatus.textContent = "Paste a YouTube link or choose a song from Saved Favorites.";
+          return;
+        }
+        var yt = parseYouTube(rawUrl);
+        if (!yt.vid && !yt.list) {
+          if (/^https?:\/\//i.test(rawUrl)) {
+            stopPlayback();
+            window.open(rawUrl, "_blank", "noopener,noreferrer");
+            ytStatus.textContent = "Opened link: " + rawUrl;
+            return;
+          }
+          ytStatus.textContent = "Paste a valid YouTube video or playlist link.";
+          return;
+        }
+
+        var normalizedUrl = normalizeYouTubeUrl(rawUrl);
+        ytUrl.value = normalizedUrl;
+
+        var userTypedCustom = ytTitle.value.trim() && !isFallbackTitle(ytTitle.value);
+        var friendlyTitle = buildFriendlyTitle(ytTitle.value, normalizedUrl, yt);
+        if (!userTypedCustom) {
+          ytTitle.value = friendlyTitle;
+        }
+
+        stopPlayback();
+
+        if (forceReload) {
+          ytFrame.src = "about:blank";
+        }
+
+        var activeList = yt.list || (artistMix && yt.vid ? "RD" + yt.vid : null);
+        var embedUrl = yt.vid
+          ? "https://www.youtube-nocookie.com/embed/" + yt.vid + "?autoplay=1&playsinline=1&rel=0" + (activeList ? "&list=" + activeList : "")
+          : "https://www.youtube-nocookie.com/embed/videoseries?autoplay=1&playsinline=1&list=" + activeList;
+
+        function applyEmbed() {
+          ytFrame.src = embedUrl;
+          ytFrameWrap.classList.add("visible");
+        }
+
+        if (forceReload) {
+          setTimeout(applyEmbed, 30);
+        } else {
+          applyEmbed();
+        }
+
+        ytStatus.textContent = activeList
+          ? "Playing Mix: " + friendlyTitle + (userTypedCustom ? "" : " (fetching song title...)")
+          : "Playing: " + friendlyTitle + (userTypedCustom ? "" : " (fetching song title...)");
+        syncFavList(normalizedUrl);
+
+        activePlayToken += 1;
+        if (!userTypedCustom) {
+          fetchYouTubeTitle(yt, activePlayToken, normalizedUrl, friendlyTitle, activeList);
+        }
+      }
+
+      ytPlayBtn.addEventListener("click", function () { playYouTube(false); });
+      ytSearchBtn.addEventListener("click", searchYouTubeExternal);
+
+      ytMixBtn.addEventListener("click", function () {
+        artistMix = !artistMix;
+        ytMixBtn.classList.toggle("active", artistMix);
+        ytMixBtn.textContent = artistMix ? "Artist Mix: On" : "Artist Mix: Off";
+        if (ytUrl.value.trim()) playYouTube(true);
+      });
+
+      ytStarBtn.addEventListener("click", function () {
+        var rawUrl = ytUrl.value.trim();
+        if (!rawUrl) {
+          ytStatus.textContent = "Paste or play a YouTube link first before starring.";
+          return;
+        }
+        var parsed = parseYouTube(rawUrl);
+        if (!parsed.vid && !parsed.list) {
+          ytStatus.textContent = "Paste a valid YouTube link first.";
+          return;
+        }
+        var url = normalizeYouTubeUrl(rawUrl);
+        ytUrl.value = url;
+
+        var title = buildFriendlyTitle(ytTitle.value, url, parsed);
+        var favs = loadFavs();
+        var existingIdx = -1;
+        for (var i = 0; i < favs.length; i++) {
+          if (normalizeYouTubeUrl(favs[i].url) === url) {
+            existingIdx = i;
+            break;
+          }
+        }
+        if (existingIdx !== -1) {
+          favs.splice(existingIdx, 1);
+          saveFavs(favs);
+          ytStatus.textContent = "Removed \"" + title + "\" from Saved Favorites (" + favs.length + " saved).";
+          syncFavList("");
+        } else {
+          favs.unshift({ title: title, url: url });
+          if (!saveFavs(favs)) {
+            ytStatus.textContent = "Could not save favorite on this device.";
+            return;
+          }
+          ytStatus.textContent = "Saved \"" + title + "\" (" + favs.length + " in Saved Favorites).";
+          syncFavList(url);
+        }
+      });
+
+      ytNewBtn.addEventListener("click", function () {
+        activePlayToken += 1;
+        ytTitle.value = "";
+        ytUrl.value = "";
+        ytStarBtn.classList.remove("starred");
+        ytStatus.textContent = "Ready for next song — paste a YouTube URL and tap Play Link.";
+      });
+
+      function triggerFavoritePlay() {
+        var favs = loadFavs();
+        if (!favs.length) {
+          ytStatus.textContent = "No saved favorites yet.";
+          return;
+        }
+        var match = favs.find(function (item) { return item.url === selectedFavUrl; }) || favs[0];
+        selectedFavUrl = match.url;
+        ytUrl.value = match.url;
+        ytTitle.value = match.title || "";
+        syncFavList(match.url);
+        playYouTube(true);
+      }
+
+      favPlayBtn.addEventListener("click", triggerFavoritePlay);
+
+      favRemoveBtn.addEventListener("click", function () {
+        var favs = loadFavs();
+        if (!favs.length) return;
+        var targetUrl = selectedFavUrl || favs[0].url;
+        var updated = favs.filter(function (item) { return item.url !== targetUrl; });
+        saveFavs(updated);
+        ytStatus.textContent = "Removed favorite (" + updated.length + " remaining).";
+        syncFavList("");
+      });
+
+      ytUrl.addEventListener("input", function () {
+        syncFavList();
+      });
+      syncFavList("");
+      syncFavRadioList();
+
+      // Self-serve Spotify Saved Playlists
+      var SP_LIST_KEY = "moefm_spotify_playlists_v1";
+      var selectedSpUri = "";
+      var spName = document.getElementById("spName");
+      var spUrl = document.getElementById("spUrl");
+      var spSaveBtn = document.getElementById("spSaveBtn");
+      var spNewBtn = document.getElementById("spNewBtn");
+      var spListEl = document.getElementById("spList");
+      var spOpenBtn = document.getElementById("spOpenBtn");
+      var spRemoveBtn = document.getElementById("spRemoveBtn");
+      var spStatus = document.getElementById("spStatus");
+      var spToggleText = document.getElementById("spToggleText");
+
+      function loadSpPlaylists() {
+        try {
+          var arr = JSON.parse(localStorage.getItem(SP_LIST_KEY) || "[]");
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveSpPlaylists(arr) {
+        try {
+          localStorage.setItem(SP_LIST_KEY, JSON.stringify(arr));
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function parseSpotifyTarget(raw) {
+        var clean = (raw || "").trim();
+        if (!clean) return null;
+        var uriMatch = clean.match(/^spotify:(playlist|album|track|artist|show):([a-zA-Z0-9]+)/i);
+        if (uriMatch) {
+          var kind = uriMatch[1].toLowerCase();
+          var id = uriMatch[2];
+          return {
+            appUri: "spotify:" + kind + ":" + id,
+            webUrl: "https://open.spotify.com/" + kind + "/" + id,
+            id: id
+          };
+        }
+        var webMatch = clean.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|track|artist|show)\/([a-zA-Z0-9]+)/i);
+        if (webMatch) {
+          var wKind = webMatch[1].toLowerCase();
+          var wId = webMatch[2];
+          return {
+            appUri: "spotify:" + wKind + ":" + wId,
+            webUrl: "https://open.spotify.com/" + wKind + "/" + wId,
+            id: wId
+          };
+        }
+        return null;
+      }
+
+      function syncSpList(selectedAppUri) {
+        var list = loadSpPlaylists();
+        spToggleText.textContent = "Saved Playlists (" + list.length + ")";
+
+        if (selectedAppUri !== undefined) {
+          selectedSpUri = selectedAppUri || "";
+        } else if (selectedSpUri && !list.some(function (item) { return item.appUri === selectedSpUri; })) {
+          selectedSpUri = list.length ? list[0].appUri : "";
+        }
+
+        spListEl.innerHTML = "";
+        if (!list.length) {
+          selectedSpUri = "";
+          var empty = document.createElement("div");
+          empty.className = "status";
+          empty.textContent = "No saved playlists yet.";
+          spListEl.appendChild(empty);
+          return;
+        }
+
+        if (!selectedSpUri) {
+          selectedSpUri = list[0].appUri;
+        }
+
+        list.forEach(function (item) {
+          var row = document.createElement("button");
+          row.type = "button";
+          row.className = "seamless-row" + (item.appUri === selectedSpUri ? " selected" : "");
+          row.setAttribute("data-sp-uri", item.appUri);
+          row.innerHTML = "<span>" + escapeHtml(item.name) + "</span><span class=\"row-sub\">Spotify</span>";
+          row.addEventListener("click", function () {
+            selectedSpUri = item.appUri;
+            syncSpList(item.appUri);
+            spStatus.textContent = "Selected \"" + item.name + "\" — tap Open Playlist.";
+          });
+          spListEl.appendChild(row);
+        });
+      }
+
+      spSaveBtn.addEventListener("click", function () {
+        var rawLink = spUrl.value.trim();
+        var parsed = parseSpotifyTarget(rawLink);
+        if (!parsed) {
+          spStatus.textContent = "Paste a valid Spotify playlist link (open.spotify.com/playlist/... or spotify:playlist:...).";
+          return;
+        }
+        var label = spName.value.trim() || ("Spotify Playlist (" + parsed.id.slice(0, 6) + ")");
+        var list = loadSpPlaylists();
+        var existingIdx = -1;
+        for (var i = 0; i < list.length; i++) {
+          if (list[i].appUri === parsed.appUri) {
+            existingIdx = i;
+            break;
+          }
+        }
+        if (existingIdx !== -1) {
+          list[existingIdx].name = label;
+        } else {
+          list.unshift({ name: label, appUri: parsed.appUri, webUrl: parsed.webUrl });
+        }
+        if (!saveSpPlaylists(list)) {
+          spStatus.textContent = "Could not save playlist on this device.";
+          return;
+        }
+        syncSpList(parsed.appUri);
+        spStatus.textContent = "Saved \"" + label + "\" (" + list.length + " saved).";
+      });
+
+      spNewBtn.addEventListener("click", function () {
+        spName.value = "";
+        spUrl.value = "";
+        spStatus.textContent = "Ready — paste a new Spotify playlist link and name it.";
+      });
+
+      spOpenBtn.addEventListener("click", function () {
+        var list = loadSpPlaylists();
+        if (!list.length) {
+          spStatus.textContent = "No saved playlists yet.";
+          return;
+        }
+        var match = list.find(function (item) { return item.appUri === selectedSpUri; }) || list[0];
+        selectedSpUri = match.appUri;
+        syncSpList(match.appUri);
+        spStatus.textContent = "Opening " + match.name + " in Spotify...";
+        window.location.href = match.appUri;
+      });
+
+      spRemoveBtn.addEventListener("click", function () {
+        var list = loadSpPlaylists();
+        if (!list.length) return;
+        var targetUri = selectedSpUri || list[0].appUri;
+        var updated = list.filter(function (item) { return item.appUri !== targetUri; });
+        saveSpPlaylists(updated);
+        spStatus.textContent = "Removed playlist (" + updated.length + " remaining).";
+        syncSpList("");
+      });
+
+      syncSpList("");
+
+      // Header Welcome / Return Pill beside "Moe FM"
+      var pill = document.getElementById("welcomePill");
+      var welcomeText = document.getElementById("welcomeText");
+      var closeBtn = document.getElementById("welcomeCloseBtn");
+      var hideTimer = null;
+      var wasHidden = false;
+
+      function showPill(isReturn) {
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+        if (isReturn) {
+          welcomeText.innerHTML = "<strong>Welcome back</strong>";
+        } else {
+          welcomeText.innerHTML = "<strong>Welcome to Moe FM</strong>";
+        }
+        pill.style.display = "inline-flex";
+        pill.classList.remove("hiding");
+        hideTimer = setTimeout(hidePill, 6000);
+      }
+
+      function hidePill() {
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+        pill.classList.add("hiding");
+        setTimeout(function () {
+          if (pill.classList.contains("hiding")) {
+            pill.style.display = "none";
+          }
+        }, 300);
+      }
+
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+          wasHidden = true;
+        } else if (wasHidden) {
+          showPill(true);
+        }
+      });
+
+      closeBtn.addEventListener("click", hidePill);
+      showPill(false);
+
+      refreshStationLists();
+    })();
+  </script>
+</body>
+</html>
