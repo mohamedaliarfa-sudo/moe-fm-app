@@ -451,6 +451,34 @@
         <div class="seamless-list" id="intlList"></div>
       </div>
     </div>
+    <!-- Live World Radio Search (Isolated Add-On) -->
+<div id="worldLiveBox" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <strong style="font-size: 0.85rem; color: #ffbe88;">Live World Radio Search</strong>
+    <span style="font-size: 0.72rem; color: #b9a796;">45,000+ Stations</span>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+    <button type="button" class="chip world-preset" data-mode="country" data-val="Colombia">Colombia</button>
+    <button type="button" class="chip world-preset" data-mode="country" data-val="Mexico">Mexico</button>
+    <button type="button" class="chip world-preset" data-mode="country" data-val="Argentina">Argentina</button>
+    <button type="button" class="chip world-preset" data-mode="country" data-val="Cuba">Cuba</button>
+    <button type="button" class="chip world-preset" data-mode="country" data-val="Tunisia">Tunisia</button>
+    <button type="button" class="chip world-preset" data-mode="tag" data-val="jazz">Jazz</button>
+    <button type="button" class="chip world-preset" data-mode="tag" data-val="cumbia">Cumbia</button>
+  </div>
+
+  <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+    <input id="worldLiveInput" type="text" placeholder="Search country, station, or genre..." style="margin-bottom: 0; flex: 1;" />
+    <button id="worldLiveBtn" type="button" class="primary">Search</button>
+  </div>
+
+  <div id="worldLiveStatus" class="status" style="margin-bottom: 6px;">
+    Tap a country above or search any live station worldwide.
+  </div>
+
+  <div id="worldLiveResults" class="seamless-list"></div>
+</div>
 
     <!-- Collapsible YouTube Box -->
     <div class="card">
@@ -1577,5 +1605,177 @@
       refreshStationLists();
     })();
   </script>
+  <script>
+  (function () {
+    try {
+      var MIRRORS = [
+        "https://de1.api.radio-browser.info",
+        "https://nl1.api.radio-browser.info",
+        "https://at1.api.radio-browser.info"
+      ];
+
+      var inputEl = document.getElementById("worldLiveInput");
+      var btnEl = document.getElementById("worldLiveBtn");
+      var statusEl = document.getElementById("worldLiveStatus");
+      var resultsEl = document.getElementById("worldLiveResults");
+      var audioEl = document.querySelector("audio");
+      var titleEl = document.getElementById("stationTitle");
+      var metaEl = document.getElementById("stationMeta");
+
+      if (!inputEl || !btnEl || !resultsEl || !audioEl) return;
+
+      var liveHls = null;
+
+      function queryMirrors(path) {
+        var list = MIRRORS.slice().sort(function () { return Math.random() - 0.5; });
+        var i = 0;
+        function next() {
+          if (i >= list.length) return Promise.reject(new Error("Offline"));
+          var base = list[i++];
+          return fetch(base + path)
+            .then(function (r) {
+              if (!r.ok) throw new Error("HTTP " + r.status);
+              return r.json();
+            })
+            .catch(function () { return next(); });
+        }
+        return next();
+      }
+
+      function playLiveStream(station) {
+        var streamUrl = (station.url_resolved || station.url || "").trim();
+        if (!streamUrl) return;
+
+        if (titleEl) titleEl.textContent = station.name || "World Radio";
+        if (metaEl) metaEl.textContent = (station.country || "Global") + " • " + (station.tags || "Live");
+        statusEl.textContent = "Connecting to " + station.name + "...";
+
+        // Stop any existing HLS instance safely
+        if (liveHls) {
+          try { liveHls.destroy(); } catch (e) {}
+          liveHls = null;
+        }
+        audioEl.pause();
+
+        var isHls = streamUrl.indexOf(".m3u8") !== -1 || Number(station.hls) === 1;
+        if (isHls && window.Hls && window.Hls.isSupported()) {
+          liveHls = new window.Hls();
+          liveHls.loadSource(streamUrl);
+          liveHls.attachMedia(audioEl);
+          liveHls.on(window.Hls.Events.MANIFEST_PARSED, function () {
+            audioEl.play().then(function () {
+              statusEl.textContent = "Playing: " + station.name;
+            }).catch(function () {
+              statusEl.textContent = "Tap Play on the deck to start audio.";
+            });
+          });
+        } else {
+          audioEl.src = streamUrl;
+          audioEl.play().then(function () {
+            statusEl.textContent = "Playing: " + station.name;
+          }).catch(function () {
+            statusEl.textContent = "Stream unavailable right now — try another result.";
+          });
+        }
+
+        // Register click in background per Radio Browser API guidelines
+        if (station.stationuuid) {
+          var pingMirror = MIRRORS[Math.floor(Math.random() * MIRRORS.length)];
+          fetch(pingMirror + "/json/url/" + encodeURIComponent(station.stationuuid)).catch(function () {});
+        }
+      }
+
+      function runSearch(mode, term) {
+        var q = (term || "").trim();
+        if (!q) {
+          statusEl.textContent = "Type a country, station, or genre first.";
+          return;
+        }
+
+        statusEl.textContent = "Searching for \"" + q + "\"...";
+        resultsEl.innerHTML = "";
+
+        var flags = "hidebroken=true&is_https=true&order=votes&reverse=true&limit=20";
+        var endpoint = "/json/stations/search?name=" + encodeURIComponent(q) + "&" + flags;
+        if (mode === "country") {
+          endpoint = "/json/stations/search?country=" + encodeURIComponent(q) + "&" + flags;
+        } else if (mode === "tag") {
+          endpoint = "/json/stations/search?tag=" + encodeURIComponent(q) + "&" + flags;
+        }
+
+        queryMirrors(endpoint)
+          .then(function (rows) {
+            var list = Array.isArray(rows) ? rows : [];
+            if (mode === "general" && list.length < 4) {
+              return queryMirrors("/json/stations/search?country=" + encodeURIComponent(q) + "&" + flags)
+                .then(function (byCountry) {
+                  return list.concat(Array.isArray(byCountry) ? byCountry : []);
+                })
+                .catch(function () { return list; });
+            }
+            return list;
+          })
+          .then(function (stations) {
+            var seen = {};
+            var clean = stations.filter(function (s) {
+              if (!s || !s.stationuuid || seen[s.stationuuid]) return false;
+              var u = s.url_resolved || s.url || "";
+              if (u.indexOf("https://") !== 0) return false;
+              seen[s.stationuuid] = true;
+              return true;
+            });
+
+            if (!clean.length) {
+              statusEl.textContent = "No HTTPS streams found for \"" + q + "\".";
+              return;
+            }
+
+            statusEl.textContent = "Found " + clean.length + " live stations — tap any row to play:";
+            clean.forEach(function (st) {
+              var row = document.createElement("button");
+              row.type = "button";
+              row.className = "seamless-row";
+              var nameSpan = document.createElement("span");
+              nameSpan.textContent = st.name || "Unknown";
+              var subSpan = document.createElement("span");
+              subSpan.className = "row-sub";
+              subSpan.textContent = (st.country || "") + (st.codec ? " · " + st.codec : "");
+              row.appendChild(nameSpan);
+              row.appendChild(subSpan);
+              row.addEventListener("click", function () {
+                playLiveStream(st);
+              });
+              resultsEl.appendChild(row);
+            });
+          })
+          .catch(function () {
+            statusEl.textContent = "Could not reach radio directory — check internet and retry.";
+          });
+      }
+
+      btnEl.addEventListener("click", function () {
+        runSearch("general", inputEl.value);
+      });
+
+      inputEl.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          runSearch("general", inputEl.value);
+        }
+      });
+
+      document.querySelectorAll(".world-preset").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          var mode = chip.getAttribute("data-mode");
+          var val = chip.getAttribute("data-val");
+          inputEl.value = val;
+          runSearch(mode, val);
+        });
+      });
+    } catch (err) {
+      // Never block existing Moe FM controls if anything fails
+    }
+  })();
+</script>
 </body>
 </html>
